@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================================================================
+   NeuroPresence design tokens
+
+   Light is the default surface. Channels are declared first so every
+   Tailwind utility can compose alpha (bg-primary/10, border-danger/40);
+   the resolved `--token` colors stay available to hand-written CSS.
+   ================================================================== */
+
+:root {
+  --bg-rgb: 249 250 252;         /* #F9FAFC page ground        */
+  --surface-rgb: 255 255 255;    /* #FFFFFF cards              */
+  --surface-2-rgb: 243 245 249;  /* #F3F5F9 inputs, raised     */
+  --border-rgb: 226 232 240;     /* #E2E8F0 hairlines          */
+  --text-rgb: 15 23 42;          /* #0F172A primary text       */
+  --text-muted-rgb: 100 116 139; /* #64748B secondary text     */
+  --primary-rgb: 37 99 235;      /* #2563EB                    */
+  --primary-hover-rgb: 29 78 216;/* #1D4ED8                    */
+  --success-rgb: 22 163 74;      /* #16A34A                    */
+  --warning-rgb: 217 119 6;      /* #D97706                    */
+  --danger-rgb: 220 38 38;       /* #DC2626                    */
+  --accent-rgb: 124 58 237;      /* #7C3AED                    */
+
+  /* Elevation reads through shadow in light, through borders in dark. */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 14px -8px rgb(15 23 42 / 0.10);
+  --shadow-raised: 0 2px 6px rgb(15 23 42 / 0.05), 0 20px 44px -22px rgb(15 23 42 / 0.20);
+  --shadow-hover: 0 2px 4px rgb(15 23 42 / 0.05), 0 14px 32px -14px rgb(15 23 42 / 0.16);
+  --shadow-hero: 0 8px 24px rgb(15 23 42 / 0.08), 0 48px 96px -40px rgb(15 23 42 / 0.32);
+
+  --grid-line: rgb(15 23 42 / 0.05);
+  --glow-a: rgb(37 99 235 / 0.14);
+  --glow-b: rgb(124 58 237 / 0.12);
+
+  color-scheme: light;
+}
+
+/* The brief's dark palette (Section 5.1), kept exact. */
+:root[data-theme='dark'] {
+  --bg-rgb: 11 15 20;            /* #0B0F14 */
+  --surface-rgb: 20 26 34;       /* #141A22 */
+  --surface-2-rgb: 28 37 48;     /* #1C2530 */
+  --border-rgb: 38 49 61;        /* #26313D */
+  --text-rgb: 230 237 243;       /* #E6EDF3 */
+  --text-muted-rgb: 139 152 165; /* #8B98A5 */
+  --primary-rgb: 59 130 246;     /* #3B82F6 */
+  --primary-hover-rgb: 37 99 235;/* #2563EB */
+  --success-rgb: 34 197 94;      /* #22C55E */
+  --warning-rgb: 245 158 11;     /* #F59E0B */
+  --danger-rgb: 239 68 68;       /* #EF4444 */
+  --accent-rgb: 139 92 246;      /* #8B5CF6 */
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px -16px rgb(0 0 0 / 0.60);
+  --shadow-raised: 0 2px 6px rgb(0 0 0 / 0.40), 0 18px 40px -24px rgb(0 0 0 / 0.75);
+  --shadow-hover: 0 2px 6px rgb(0 0 0 / 0.45), 0 16px 34px -18px rgb(0 0 0 / 0.70);
+  --shadow-hero: 0 10px 30px rgb(0 0 0 / 0.5), 0 60px 110px -50px rgb(0 0 0 / 0.9);
+
+  --grid-line: rgb(230 237 243 / 0.06);
+  --glow-a: rgb(59 130 246 / 0.20);
+  --glow-b: rgb(139 92 246 / 0.16);
+
+  color-scheme: dark;
+}
+
+:root {
+  --bg: rgb(var(--bg-rgb));
+  --surface: rgb(var(--surface-rgb));
+  --surface-2: rgb(var(--surface-2-rgb));
+  --border: rgb(var(--border-rgb));
+  --text: rgb(var(--text-rgb));
+  --text-muted: rgb(var(--text-muted-rgb));
+  --primary: rgb(var(--primary-rgb));
+  --primary-hover: rgb(var(--primary-hover-rgb));
+  --success: rgb(var(--success-rgb));
+  --warning: rgb(var(--warning-rgb));
+  --danger: rgb(var(--danger-rgb));
+  --accent: rgb(var(--accent-rgb));
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: theme('fontFamily.sans');
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: rgb(var(--primary-rgb) / 0.18);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--text-muted-rgb) / 0.35) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--text-muted-rgb) / 0.3);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--text-muted-rgb) / 0.5);
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .np-card {
+    @apply rounded-card border border-border bg-surface shadow-card;
+  }
+
+  .np-chip {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-chip border border-border
+           bg-surface-2 px-2 py-1 text-[11px] font-medium leading-none text-text-muted;
+  }
+
+  .np-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.09em] text-text-muted;
+  }
+
+  .np-metric {
+    @apply font-mono text-[28px] font-semibold leading-none tabular-nums;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .np-section-heading {
+    @apply text-[16px] font-semibold text-text;
+  }
+
+  .np-page-title {
+    @apply text-[24px] font-semibold leading-tight text-text;
+  }
+
+  .np-divider {
+    @apply h-px w-full bg-border;
+  }
+
+  /* -------------------- landing-page primitives -------------------- */
+
+  /* Gradient wordmark used for the one accent phrase per heading. */
+  .np-gradient-text {
+    background-image: linear-gradient(
+      100deg,
+      rgb(var(--primary-rgb)) 0%,
+      rgb(var(--accent-rgb)) 55%,
+      rgb(var(--primary-rgb)) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Faint engineering grid behind hero + section bands. */
+  .np-grid-bg {
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: center;
+  }
+
+  .np-eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5
+           text-[12px] font-medium text-text-muted shadow-card;
+  }
+
+  /* Hairline that fades at both ends — used between landing sections. */
+  .np-rule {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--border-rgb)) 15%,
+      rgb(var(--border-rgb)) 85%,
+      transparent
+    );
+  }
+}
+
+/* Section 12: honour reduced-motion — no ticking, pulsing or sweeps. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
