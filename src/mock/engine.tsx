@@ -103,11 +103,33 @@ export interface EngineValue {
 
 const EngineContext = createContext<EngineValue | null>(null)
 
-export function EngineProvider({ children }: { children: ReactNode }) {
-  const [screen, setScreen] = useState<Screen>('landing')
-  const [mode, setModeState] = useState<Mode>('realtime')
+/** The stand-in identity used when someone deep-links past enrollment. */
+const demoIdentity = (): EnrolledUser => ({
+  name: 'Zain Shahid',
+  // A label, not a computation. No embedding is produced anywhere.
+  embeddingId: 'emb_9f2a71c4',
+  enrolledAt: new Date(),
+})
 
-  const [enrolledUser, setEnrolledUser] = useState<EnrolledUser | null>(null)
+/**
+ * Resolves the deep-linked screen from the URL for the very first render.
+ *
+ * Seeding the state this way (rather than starting on 'landing' and correcting
+ * in an effect) is what makes a hard refresh or a pasted `#/devices` link work:
+ * the screen→hash effect below would otherwise fire first with a stale
+ * 'landing' and overwrite the hash the visitor actually asked for.
+ */
+const bootScreen = (): Screen => screenFromHash(window.location.hash) ?? 'landing'
+
+export function EngineProvider({ children }: { children: ReactNode }) {
+  const [screen, setScreen] = useState<Screen>(bootScreen)
+  const [mode, setModeState] = useState<Mode>(() =>
+    bootScreen() === 'offline' ? 'offline' : 'realtime',
+  )
+
+  const [enrolledUser, setEnrolledUser] = useState<EnrolledUser | null>(() =>
+    isAppScreen(bootScreen()) ? demoIdentity() : null,
+  )
   const [onboardingDone, setOnboardingDone] = useState(false)
 
   const [clips, setClips] = useState<SourceClip[]>(SEED_CLIPS)
@@ -133,6 +155,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
   const [offline, setOffline] = useState<OfflineState>({
     drivingFileName: null,
     drivingSrc: null,
+    drivingDuration: null,
     checkStatus: 'idle',
     simulatePoorInput: false,
     resolution: 512,
@@ -148,13 +171,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
   /* ---------------------------- identity ---------------------------- */
 
   const enrollUser = useCallback((name: string) => {
-    const trimmed = name.trim() || 'Zain Shahid'
-    setEnrolledUser({
-      name: trimmed,
-      // A label, not a computation. No embedding is produced anywhere.
-      embeddingId: 'emb_9f2a71c4',
-      enrolledAt: new Date(),
-    })
+    setEnrolledUser({ ...demoIdentity(), name: name.trim() || 'Zain Shahid' })
   }, [])
 
 
@@ -175,9 +192,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     // should not land on an un-enrolled shell — fall back to the demo
     // identity, exactly as the "Skip" link does.
     if (isAppScreen(next)) {
-      setEnrolledUser((prev) =>
-        prev ?? { name: 'Zain Shahid', embeddingId: 'emb_9f2a71c4', enrolledAt: new Date() },
-      )
+      setEnrolledUser((prev) => prev ?? demoIdentity())
     }
   }, [])
 
@@ -369,12 +384,14 @@ export function EngineProvider({ children }: { children: ReactNode }) {
 
   const setDrivingVideo = useCallback((file: File) => {
     const poor = /bad/i.test(file.name)
+    const src = URL.createObjectURL(file)
     setOffline((prev) => {
       if (prev.drivingSrc) URL.revokeObjectURL(prev.drivingSrc)
       return {
         ...prev,
         drivingFileName: file.name,
-        drivingSrc: URL.createObjectURL(file),
+        drivingSrc: src,
+        drivingDuration: null,
         checkStatus: 'checking',
         simulatePoorInput: poor || prev.simulatePoorInput,
         renderStatus: 'idle',
@@ -383,6 +400,17 @@ export function EngineProvider({ children }: { children: ReactNode }) {
         renderedAt: null,
       }
     })
+
+    // Read the real length off the file so the exported stand-in can match it
+    // instead of always being a fixed 3s clip.
+    const probe = document.createElement('video')
+    probe.preload = 'metadata'
+    probe.muted = true
+    probe.src = src
+    probe.onloadedmetadata = () => {
+      const seconds = Number.isFinite(probe.duration) ? probe.duration : null
+      setOffline((prev) => (prev.drivingSrc === src ? { ...prev, drivingDuration: seconds } : prev))
+    }
   }, [])
 
   const clearDrivingVideo = useCallback(() => {
@@ -392,6 +420,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
         ...prev,
         drivingFileName: null,
         drivingSrc: null,
+        drivingDuration: null,
         checkStatus: 'idle',
         renderStatus: 'idle',
         renderProgress: 0,

@@ -61,6 +61,8 @@ export type RenderStatus = 'idle' | 'rendering' | 'done'
 export interface OfflineState {
   drivingFileName: string | null
   drivingSrc: string | null
+  /** Duration of the uploaded driving video in seconds; null until metadata loads. */
+  drivingDuration: number | null
   /** 'idle' | 'checking' | 'pass' | 'fail' */
   checkStatus: 'idle' | 'checking' | 'pass' | 'fail'
   simulatePoorInput: boolean

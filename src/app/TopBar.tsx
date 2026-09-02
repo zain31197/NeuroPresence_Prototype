@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { BadgeCheck, Clapperboard, MonitorPlay, ShieldCheck, ShieldOff, ShieldAlert } from 'lucide-react'
 import { VIRTUAL_CAMERA_NAME } from '../mock/constants'
 import { useEngine } from '../mock/engine'
@@ -64,23 +64,20 @@ export function TopBar() {
           Disclosure: {watermark ? 'ON' : 'OFF'}
         </Chip>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={live ? 'live' : warming ? 'warming' : 'idle'}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex"
+        <motion.span
+          key={live ? 'live' : warming ? 'warming' : 'idle'}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-flex"
+        >
+          <Chip
+            tone={live ? 'danger' : warming ? 'primary' : 'muted'}
+            icon={<StatusDot tone={live ? 'danger' : warming ? 'primary' : 'muted'} pulse={live} />}
           >
-            <Chip
-              tone={live ? 'danger' : warming ? 'primary' : 'muted'}
-              icon={<StatusDot tone={live ? 'danger' : warming ? 'primary' : 'muted'} pulse={live} />}
-            >
-              {live ? 'LIVE' : warming ? 'Warming' : 'Idle'}
-            </Chip>
-          </motion.span>
-        </AnimatePresence>
+            {live ? 'LIVE' : warming ? 'Warming' : 'Idle'}
+          </Chip>
+        </motion.span>
 
         <span
           className="hidden max-w-[220px] truncate text-[12px] text-text-muted lg:inline"

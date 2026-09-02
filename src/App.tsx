@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Sidebar } from './app/Sidebar'
 import { TopBar } from './app/TopBar'
 import { useEngine } from './mock/engine'
@@ -35,18 +35,22 @@ export default function App() {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={screen}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="mx-auto w-full max-w-[1480px] px-6 py-6"
-            >
-              <Screen />
-            </motion.div>
-          </AnimatePresence>
+          {/*
+           * A keyed motion.div — deliberately NOT wrapped in <AnimatePresence
+           * mode="wait">. The exit-then-enter handoff there deadlocks when an
+           * unrelated context update (e.g. the theme toggle) re-renders this
+           * subtree mid-transition, leaving <main> stuck at opacity:0. Remounting
+           * on `key` change replays the enter animation and can never wedge.
+           */}
+          <motion.div
+            key={screen}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="mx-auto w-full max-w-[1480px] px-6 py-6"
+          >
+            <Screen />
+          </motion.div>
 
           <footer className="mx-auto w-full max-w-[1480px] px-6 pb-6 pt-1">
             <p className="border-t border-border pt-4 text-[11px] leading-relaxed text-text-muted">

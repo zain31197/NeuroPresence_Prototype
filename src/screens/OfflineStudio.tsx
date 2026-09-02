@@ -74,7 +74,11 @@ export function OfflineStudio() {
         downloadUrl(activeClip.src, `neuropresence_offline_${size}.mp4`)
         return
       }
-      const { blob, extension } = await exportRenderedClip(activeClip, size)
+      // Match the stand-in's length to the driving video the user uploaded,
+      // rather than always emitting a fixed 3s clip. Clamped so a very long
+      // upload can't tie up a multi-minute canvas capture.
+      const seconds = Math.min(60, Math.max(2, Math.round(offline.drivingDuration ?? 3)))
+      const { blob, extension } = await exportRenderedClip(activeClip, size, seconds)
       downloadBlob(blob, `neuropresence_offline_${size}.${extension}`)
     } finally {
       setPreparing(false)
@@ -422,6 +426,15 @@ export function OfflineStudio() {
                     <dt className="text-text-muted">Source clip</dt>
                     <dd className="truncate text-text">{activeClip.name}</dd>
                   </div>
+                  {!activeClip.src && offline.drivingDuration ? (
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-text-muted">Output length</dt>
+                      <dd className="font-mono text-text">
+                        {Math.min(60, Math.max(2, Math.round(offline.drivingDuration)))}s
+                        {offline.drivingDuration > 60 ? ' (capped)' : ''}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between gap-3">
                     <dt className="text-text-muted">Latency budget</dt>
                     <dd className="text-text">None — offline quality reference</dd>

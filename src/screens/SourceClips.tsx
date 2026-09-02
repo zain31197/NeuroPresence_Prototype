@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Film, Plus, UploadCloud, X } from 'lucide-react'
 import { useEngine } from '../mock/engine'
@@ -12,6 +13,36 @@ function AddClipDialog({ onClose }: { onClose: () => void }) {
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const headingId = useId()
+
+  // Kept in a ref so the effect below runs once, on open, rather than
+  // re-focusing the panel on every re-render of the parent screen.
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+
+  /*
+   * Modal plumbing. An onKeyDown on the backdrop cannot work on its own —
+   * a plain div is not focusable, so nothing inside the dialog holds focus
+   * for the key event to bubble from. Listen on the document instead, move
+   * focus into the panel on open, and hand it back to the opener on close.
+   */
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    panelRef.current?.focus()
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        closeRef.current()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      opener?.focus?.()
+    }
+  }, [])
 
   const accept = (file: File | undefined) => {
     if (!file) return
@@ -24,25 +55,38 @@ function AddClipDialog({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
-  return (
+  /*
+   * Portalled to <body> rather than rendered in place. Inside the screen the
+   * backdrop is the last child of a `space-y-4` wrapper, which gives it a
+   * 16px top margin — and a fixed box with top:0/bottom:0 still honours its
+   * margins, so it sat 16px low and 16px short, leaving a strip along the top
+   * that clicks fell straight through. A portal also keeps the overlay immune
+   * to any transform or filter an ancestor picks up later.
+   */
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add source clip"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose()
+      role="presentation"
+      // Only a press that lands on the backdrop itself dismisses; a drag that
+      // starts inside the panel and ends out here must not close it.
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose()
       }}
     >
       <motion.div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
         initial={{ opacity: 0, scale: 0.97, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[520px] rounded-card border border-border bg-surface p-6 shadow-raised"
+        className="w-full max-w-[520px] rounded-card border border-border bg-surface p-6 shadow-raised outline-none"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="np-section-heading">Add source clip</h2>
+            <h2 id={headingId} className="np-section-heading">Add source clip</h2>
             <p className="mt-0.5 text-[13px] text-text-muted">
               A short, well-lit recording of you looking presentable.
             </p>
@@ -95,7 +139,8 @@ function AddClipDialog({ onClose }: { onClose: () => void }) {
           analysis, no upload — this prototype only lists it as a clip.
         </p>
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
