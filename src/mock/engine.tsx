@@ -180,8 +180,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     renderedAt: null,
   })
 
-  // Dark is the product default (brief §4 — "this is a pro media tool").
-  const [theme, setThemeState] = useState<'dark' | 'light'>('dark')
+  const [theme, setThemeState] = useState<'dark' | 'light'>('light')
 
   const [tourActive, setTourActive] = useState(false)
   const [tourIndex, setTourIndex] = useState(0)
@@ -346,9 +345,13 @@ export function EngineProvider({ children }: { children: ReactNode }) {
 
   const startSession = useCallback(() => {
     if (gateState === 'blocked') return
+    // Already running: leave it alone rather than dropping back into warm-up.
+    // Lets a repeated press — or a demo step that just wants a live session —
+    // be a no-op instead of a restart.
+    if (session !== 'idle') return
     setSession('warming')
     setWarmupProgress(0)
-  }, [gateState])
+  }, [gateState, session])
 
   // A blocked gate tears down a running session — the safeguard has teeth.
   useEffect(() => {

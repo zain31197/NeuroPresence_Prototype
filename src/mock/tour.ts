@@ -94,7 +94,11 @@ export const TOUR_STEPS: TourStep[] = [
     screen: 'console',
     target: 'metrics',
     hold: 9000,
-    onEnter: (a) => a.setMetricsMode('target'),
+    // Also ensures a session, so jumping straight here still shows live tiles.
+    onEnter: (a) => {
+      a.startSession()
+      a.setMetricsMode('target')
+    },
   },
   {
     id: 'gap',
@@ -105,7 +109,10 @@ export const TOUR_STEPS: TourStep[] = [
     screen: 'console',
     target: 'metrics',
     hold: 11000,
-    onEnter: (a) => a.setMetricsMode('baseline'),
+    onEnter: (a) => {
+      a.startSession()
+      a.setMetricsMode('baseline')
+    },
   },
   {
     id: 'disclosure',
@@ -117,6 +124,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'watermark-card',
     hold: 7500,
     onEnter: (a) => {
+      a.startSession()
       a.setMetricsMode('target')
       a.setWatermark(true)
     },
@@ -132,6 +140,7 @@ export const TOUR_STEPS: TourStep[] = [
     hold: 9000,
     onEnter: (a) => {
       a.setGateEnabled(true)
+      a.startSession()
       a.simulateNonEnrolledFace()
     },
   },
