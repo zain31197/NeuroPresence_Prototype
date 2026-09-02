@@ -2,6 +2,7 @@ import {
   forwardRef,
   useId,
   type ButtonHTMLAttributes,
+  type HTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react'
@@ -18,13 +19,14 @@ export function Card({
   className,
   padding = 'p-5',
   interactive,
+  ...rest
 }: {
   children: ReactNode
   className?: string
   padding?: string
   /** Adds the hover lift used on browsable grids. */
   interactive?: boolean
-}) {
+} & HTMLAttributes<HTMLElement>) {
   return (
     <section
       className={cx(
@@ -34,6 +36,7 @@ export function Card({
           'transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-hover motion-reduce:hover:translate-y-0',
         className,
       )}
+      {...rest}
     >
       {children}
     </section>

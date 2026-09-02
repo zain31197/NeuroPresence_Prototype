@@ -8,7 +8,7 @@ export function WatermarkCard() {
   const { watermark, setWatermark, activeClip } = useEngine()
 
   return (
-    <Card>
+    <Card data-tour="watermark-card">
       <CardHeader
         icon={<BadgeCheck size={16} />}
         title="Disclosure Watermark"

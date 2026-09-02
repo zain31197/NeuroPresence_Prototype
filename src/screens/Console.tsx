@@ -5,6 +5,7 @@ import { useEngine } from '../mock/engine'
 import { ConsentGateCard } from '../components/ConsentGate'
 import { DrivingSignal } from '../components/DrivingSignal'
 import { MetricsPanel } from '../components/MetricsPanel'
+import { PipelineFlow } from '../components/PipelineFlow'
 import { SessionControls } from '../components/SessionControls'
 import { VideoFrame } from '../components/VideoFrame'
 import { WatermarkCard } from '../components/WatermarkCard'
@@ -46,21 +47,27 @@ export function Console() {
         <div className="space-y-4">
           <MountItem>
           <Card padding="p-4">
-            <VideoFrame
-              clip={activeClip}
-              session={session}
-              watermark={watermark}
-              warmupProgress={warmupProgress}
-              blocked={blocked}
-              cornerRight={
-                <OverlayChip>{activeClip.resolution}</OverlayChip>
-              }
-            />
+            <div data-tour="output-frame">
+              <VideoFrame
+                clip={activeClip}
+                session={session}
+                watermark={watermark}
+                warmupProgress={warmupProgress}
+                blocked={blocked}
+                cornerRight={
+                  <OverlayChip>{activeClip.resolution}</OverlayChip>
+                }
+              />
+            </div>
 
-            <div className="mt-4">
+            <div className="mt-4" data-tour="session-controls">
               <SessionControls />
             </div>
           </Card>
+          </MountItem>
+
+          <MountItem>
+            <PipelineFlow />
           </MountItem>
 
           <MountItem className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_240px]">

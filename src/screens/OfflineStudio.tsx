@@ -195,14 +195,25 @@ export function OfflineStudio() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
                 <div className="overflow-hidden rounded-control border border-border bg-black">
-                  <video
-                    src={offline.drivingSrc ?? undefined}
-                    className="aspect-video w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                  />
+                  {offline.drivingSrc ? (
+                    <video
+                      src={offline.drivingSrc}
+                      className="aspect-video w-full object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                    />
+                  ) : (
+                    // The guided demo loads a stand-in recording with no file
+                    // behind it — draw the placeholder rather than an empty box.
+                    <div className="relative aspect-video w-full">
+                      <ClipSurface clip={activeClip} animated talking />
+                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-2 pb-1 pt-4 text-[9px] font-medium uppercase tracking-wider text-white/70">
+                        Stand-in recording
+                      </span>
+                    </div>
+                  )}
                   <p className="truncate px-2 py-1.5 text-[11px] text-text-muted">
                     {offline.drivingFileName}
                   </p>
@@ -360,7 +371,7 @@ export function OfflineStudio() {
 
         {/* --------------------------- output --------------------------- */}
         <div className="space-y-4">
-          <Card>
+          <Card data-tour="offline-render">
             <CardHeader
               icon={<Film size={16} />}
               title="Output"

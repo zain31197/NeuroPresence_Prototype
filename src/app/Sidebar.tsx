@@ -5,6 +5,7 @@ import {
   Home,
   LayoutDashboard,
   MonitorPlay,
+  Presentation,
   Settings as SettingsIcon,
 } from 'lucide-react'
 import { useEngine } from '../mock/engine'
@@ -43,7 +44,7 @@ function Logo() {
 }
 
 export function Sidebar() {
-  const { screen, navigate, enrolledUser } = useEngine()
+  const { screen, navigate, enrolledUser, startTour } = useEngine()
 
   return (
     <nav
@@ -106,6 +107,25 @@ export function Sidebar() {
       </ul>
 
       <div className="space-y-2.5 border-t border-border p-3">
+        {/* The brief's §13 defense script, driven by the app itself. */}
+        <button
+          type="button"
+          onClick={startTour}
+          title="Play the guided demo"
+          className={cx(
+            'group/tour relative flex w-full items-center gap-3 overflow-hidden rounded-control px-3 py-2.5',
+            'border border-primary/30 bg-primary/[0.08] text-[13px] font-medium text-primary',
+            'transition-colors duration-200 hover:border-primary/50 hover:bg-primary/[0.14]',
+            'justify-center xl:justify-start',
+          )}
+        >
+          <Presentation size={17} className="relative shrink-0" />
+          <span className="relative hidden truncate xl:inline">Guided demo</span>
+          <span className="relative ml-auto hidden font-mono text-[10px] text-primary/60 xl:inline">
+            3 min
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={() => navigate('landing')}

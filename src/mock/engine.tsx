@@ -11,6 +11,7 @@ import {
 import { hashForScreen, isAppScreen, screenFromHash, TITLES } from '../app/routes'
 import { INPUT_DEVICES, RENDER_STAGES, SEED_CLIPS, USER_CLIP_PALETTES } from './seedData'
 import { HISTORY_LENGTH, initialSamplerState, nextSample, type SamplerState } from './sampler'
+import { TOUR_STEPS, type TourActions } from './tour'
 import type {
   EnrolledUser,
   GateState,
@@ -89,6 +90,8 @@ export interface EngineValue {
   // offline studio
   offline: OfflineState
   setDrivingVideo: (file: File) => void
+  /** Loads a stand-in driving recording, for the guided demo. */
+  loadDemoDrivingVideo: () => void
   clearDrivingVideo: () => void
   setSimulatePoorInput: (on: boolean) => void
   setOfflineResolution: (r: 256 | 512 | 1024) => void
@@ -99,6 +102,17 @@ export interface EngineValue {
   // appearance
   theme: 'dark' | 'light'
   setTheme: (t: 'dark' | 'light') => void
+
+  // guided demo (brief §13)
+  tourActive: boolean
+  tourIndex: number
+  tourPlaying: boolean
+  startTour: () => void
+  endTour: () => void
+  tourNext: () => void
+  tourPrev: () => void
+  tourGoTo: (index: number) => void
+  setTourPlaying: (playing: boolean) => void
 }
 
 const EngineContext = createContext<EngineValue | null>(null)
@@ -166,7 +180,12 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     renderedAt: null,
   })
 
-  const [theme, setThemeState] = useState<'dark' | 'light'>('light')
+  // Dark is the product default (brief §4 — "this is a pro media tool").
+  const [theme, setThemeState] = useState<'dark' | 'light'>('dark')
+
+  const [tourActive, setTourActive] = useState(false)
+  const [tourIndex, setTourIndex] = useState(0)
+  const [tourPlaying, setTourPlaying] = useState(true)
 
   /* ---------------------------- identity ---------------------------- */
 
@@ -413,6 +432,29 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  /**
+   * Stand-in driving recording for the guided demo, so the offline flow can
+   * be shown without asking the presenter to pick a file mid-sentence. It
+   * carries no object URL — the preview falls back to a drawn placeholder.
+   */
+  const loadDemoDrivingVideo = useCallback(() => {
+    setOffline((prev) => {
+      if (prev.drivingSrc) URL.revokeObjectURL(prev.drivingSrc)
+      return {
+        ...prev,
+        drivingFileName: 'demo_driving_recording.mp4',
+        drivingSrc: null,
+        drivingDuration: 12,
+        checkStatus: 'checking',
+        simulatePoorInput: false,
+        renderStatus: 'idle',
+        renderProgress: 0,
+        renderStage: '',
+        renderedAt: null,
+      }
+    })
+  }, [])
+
   const clearDrivingVideo = useCallback(() => {
     setOffline((prev) => {
       if (prev.drivingSrc) URL.revokeObjectURL(prev.drivingSrc)
@@ -521,6 +563,78 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
+  /* --------------------------- guided demo ---------------------------- */
+
+  /*
+   * The tour drives the same public actions a presenter would click. Kept in
+   * a ref so the step runner never has to list every action as a dependency
+   * and re-fire a step it has already played.
+   */
+  const tourActionsRef = useRef<TourActions | null>(null)
+  tourActionsRef.current = {
+    navigate: applyScreen,
+    startSession,
+    stopSession,
+    setMetricsMode,
+    setWatermark,
+    setGateEnabled,
+    simulateNonEnrolledFace,
+    loadDemoDrivingVideo,
+    startRender,
+    resetRender,
+  }
+
+  const startTour = useCallback(() => {
+    setTourIndex(0)
+    setTourPlaying(true)
+    setTourActive(true)
+  }, [])
+
+  const endTour = useCallback(() => {
+    setTourActive(false)
+    setTourPlaying(false)
+    stopSession()
+  }, [stopSession])
+
+  const tourGoTo = useCallback((index: number) => {
+    if (index < 0 || index >= TOUR_STEPS.length) return
+    setTourIndex(index)
+  }, [])
+
+  const tourNext = useCallback(() => {
+    setTourIndex((i) => {
+      if (i >= TOUR_STEPS.length - 1) return i
+      return i + 1
+    })
+  }, [])
+
+  const tourPrev = useCallback(() => setTourIndex((i) => Math.max(0, i - 1)), [])
+
+  // Play the current step: put the interface where the narration expects it.
+  useEffect(() => {
+    if (!tourActive) return
+    const step = TOUR_STEPS[tourIndex]
+    if (!step || !tourActionsRef.current) return
+    step.onEnter?.(tourActionsRef.current)
+  }, [tourActive, tourIndex])
+
+  // Auto-advance while playing. Pausing freezes on the current step.
+  useEffect(() => {
+    if (!tourActive || !tourPlaying) return
+    if (tourIndex >= TOUR_STEPS.length - 1) return
+    const id = window.setTimeout(() => setTourIndex((i) => i + 1), TOUR_STEPS[tourIndex].hold)
+    return () => window.clearTimeout(id)
+  }, [tourActive, tourPlaying, tourIndex])
+
+  // The offline chapter renders itself once its input check has passed.
+  useEffect(() => {
+    if (!tourActive) return
+    if (TOUR_STEPS[tourIndex]?.id !== 'offline') return
+    if (offline.checkStatus !== 'pass' || offline.renderStatus !== 'idle') return
+    const id = window.setTimeout(() => startRender(), 700)
+    return () => window.clearTimeout(id)
+  }, [tourActive, tourIndex, offline.checkStatus, offline.renderStatus, startRender])
+
   const value = useMemo<EngineValue>(
     () => ({
       screen,
@@ -557,6 +671,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
       setInputDevice,
       offline,
       setDrivingVideo,
+      loadDemoDrivingVideo,
       clearDrivingVideo,
       setSimulatePoorInput,
       setOfflineResolution,
@@ -565,6 +680,15 @@ export function EngineProvider({ children }: { children: ReactNode }) {
       resetRender,
       theme,
       setTheme,
+      tourActive,
+      tourIndex,
+      tourPlaying,
+      startTour,
+      endTour,
+      tourNext,
+      tourPrev,
+      tourGoTo,
+      setTourPlaying,
     }),
     [
       screen, navigate, mode, setMode, enrolledUser, enrollUser, onboardingDone,
@@ -572,8 +696,10 @@ export function EngineProvider({ children }: { children: ReactNode }) {
       setActiveClip, addClip, session, warmupProgress, startSession, stopSession,
       sessionSeconds, gateEnabled, setGateEnabled, gateState, simulateNonEnrolledFace,
       blockedSecondsLeft, watermark, metricsMode, setMetricsMode, metrics, history,
-      inputDevice, offline, setDrivingVideo, clearDrivingVideo, setSimulatePoorInput,
-      setOfflineResolution, setSmoothing, startRender, resetRender, theme, setTheme,
+      inputDevice, offline, setDrivingVideo, loadDemoDrivingVideo, clearDrivingVideo,
+      setSimulatePoorInput, setOfflineResolution, setSmoothing, startRender, resetRender,
+      theme, setTheme, tourActive, tourIndex, tourPlaying, startTour, endTour,
+      tourNext, tourPrev, tourGoTo,
     ],
   )
 

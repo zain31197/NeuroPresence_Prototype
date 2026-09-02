@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Sidebar } from './app/Sidebar'
 import { TopBar } from './app/TopBar'
+import { GuidedTour } from './components/GuidedTour'
 import { useEngine } from './mock/engine'
 import { COPY } from './mock/constants'
 import { Console } from './screens/Console'
@@ -24,13 +25,14 @@ export default function App() {
 
   // The landing page and the enrollment flow each own the whole viewport —
   // no application shell behind them.
-  if (screen === 'landing') return <Landing />
-  if (screen === 'onboarding') return <Onboarding />
+  if (screen === 'landing') return <><Landing /><GuidedTour /></>
+  if (screen === 'onboarding') return <><Onboarding /><GuidedTour /></>
 
   const Screen = SCREENS[screen]
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-bg">
+      <GuidedTour />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />

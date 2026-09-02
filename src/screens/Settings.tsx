@@ -123,7 +123,7 @@ export function Settings() {
           <CardHeader
             icon={<Palette size={16} />}
             title="Appearance"
-            subtitle="Light is the default. Dark matches the studio-tool look."
+            subtitle="Dark is the default — it matches the studio tools this sits beside."
           />
           <div className="flex items-center justify-between gap-4">
             <span className="text-[13px] font-medium text-text">Theme</span>

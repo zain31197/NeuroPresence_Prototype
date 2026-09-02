@@ -13,6 +13,7 @@ import {
   Menu,
   MonitorPlay,
   Moon,
+  Presentation,
   Radio,
   ScanFace,
   ShieldCheck,
@@ -207,7 +208,7 @@ function LandingNav() {
 /* ------------------------------- hero ------------------------------ */
 
 function Hero() {
-  const { navigate, enrolledUser } = useEngine()
+  const { navigate, enrolledUser, startTour } = useEngine()
   const reduced = useReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
   const launch = () => navigate(enrolledUser ? 'console' : 'onboarding')
@@ -271,7 +272,17 @@ function Hero() {
               Launch the prototype
               <ArrowRight size={16} className="transition-transform duration-200 group-hover/btn:translate-x-0.5" />
             </Button>
-            <Button size="lg" onClick={() => scrollToSection('proof')}>
+            <Button
+              size="lg"
+              onClick={() => {
+                navigate('console')
+                startTour()
+              }}
+            >
+              <Presentation size={16} />
+              Watch the 3-min tour
+            </Button>
+            <Button size="lg" variant="ghost" onClick={() => scrollToSection('proof')}>
               <Gauge size={16} />
               See the measured numbers
             </Button>

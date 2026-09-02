@@ -55,7 +55,7 @@ export function Devices() {
         </Card>
 
         {/* -------------------------- output --------------------------- */}
-        <Card className="border-primary/40 ring-1 ring-primary/20">
+        <Card data-tour="output-device" className="border-primary/40 ring-1 ring-primary/20">
           <CardHeader
             icon={<MonitorPlay size={16} />}
             title="Output device"

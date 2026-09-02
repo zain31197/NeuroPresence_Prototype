@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { Activity, Cpu, Gauge, ScanFace, Timer } from 'lucide-react'
-import { HARDWARE, MEASURED, TARGETS } from '../mock/constants'
+import { TARGETS } from '../mock/constants'
 import { useEngine } from '../mock/engine'
 import type { MetricsMode } from '../mock/types'
+import { GapMeter } from './GapMeter'
 import { Sparkline } from './Sparkline'
 import { useAnimatedNumber } from './useAnimatedNumber'
 import { Card, CardHeader, cx, Segmented, SimulatedBadge } from './ui'
@@ -101,7 +102,7 @@ export function MetricsPanel() {
   const latencyValues = history.map((h) => h.latencyMs)
 
   return (
-    <Card>
+    <Card data-tour="metrics">
       <CardHeader
         icon={<Activity size={16} />}
         title="Live Telemetry"
@@ -194,45 +195,15 @@ export function MetricsPanel() {
       </div>
 
       {baseline ? (
-        <div className="mt-4 rounded-control border border-warning/25 bg-warning/[0.07] px-3.5 py-3">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-warning">
-            Measured proof-of-concept
-          </p>
-          <p className="mt-1.5 text-[12px] leading-relaxed text-text-muted">
-            Unoptimized baseline on {HARDWARE.gpu} ({HARDWARE.vram}), {HARDWARE.os}, with actual
-            LivePortrait weights.
-          </p>
-          <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[11px] tabular-nums">
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">mean</dt>
-              <dd className="text-text">{MEASURED.latencyMeanMs} ms</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">p95</dt>
-              <dd className="text-text">{MEASURED.latencyP95Ms} ms</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">p99</dt>
-              <dd className="text-text">{MEASURED.latencyP99Ms} ms</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">throughput</dt>
-              <dd className="text-text">{MEASURED.fps} FPS</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">peak VRAM</dt>
-              <dd className="text-text">{MEASURED.peakVramGb} GB</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-text-muted">fine-tune fit</dt>
-              <dd className="text-text">{MEASURED.fineTuneFitGb} GB</dd>
-            </div>
-          </dl>
-          <p className="mt-2.5 text-[11px] leading-relaxed text-text-muted">
-            Fine-tune fit check: 2 of 5 modules, FP32, batch 1. The engineering gap this project
-            closes is {MEASURED.latencyMeanMs} ms → {TARGETS.frameComputeMs} ms per frame.
-          </p>
-        </div>
+        <motion.div
+          key="gap"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-4"
+        >
+          <GapMeter />
+        </motion.div>
       ) : (
         <p className="mt-3 text-[11px] leading-relaxed text-text-muted">
           Target mode shows the finished-product operating point. Switch to Baseline for the

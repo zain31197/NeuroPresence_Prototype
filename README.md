@@ -63,8 +63,10 @@ the sidebar, the page footer and Settings → About.
    simulated "Analyzing facial embedding…") → choose a source clip. A **Skip — use demo identity**
    link jumps straight to the Console. Reachable again from Settings → Re-enroll.
 2. **Console** (home, the centrepiece) — the 16:9 **Virtual Camera Output** frame, Start/Stop with
-   a 1.5s warm-up, the live telemetry panel, the consent gate card, the disclosure watermark card,
-   the active source-clip selector, and the optional driving-signal thumbnail.
+   a 1.5s warm-up, the **reenactment pipeline** strip (webcam → motion → consent gate → reenactment
+   → virtual camera, animating while live and halting at the gate when the gate blocks), the live
+   telemetry panel, the consent gate card, the disclosure watermark card, the active source-clip
+   selector, and the optional driving-signal thumbnail.
 3. **Source Clips** — three seed clips plus a mock **Add source clip** upload. Sets the active clip
    used everywhere else.
 4. **Offline Studio** — the non-real-time mode: pick a clip → upload a driving video → input-quality
@@ -135,11 +137,37 @@ The **Baseline** view of the metrics panel shows our actual measurements — not
 CSIM 0.83–0.88). **Baseline** display mode holds near the measured constants, and reports CSIM as
 `n/a (baseline)` because the baseline run produced no identity-similarity figure.
 
+Switching to **Baseline** also reveals the **engineering gap** panel: both figures drawn to the same
+scale, with the 88.1 ms that has to come out and the 3.1× speed-up stated plainly. That gap is the
+project.
+
+---
+
+## Guided demo (the script, driven by the app)
+
+The click-path below is also built into the prototype. Press **Guided demo** in the sidebar, or
+**Watch the 3-min tour** on the landing page, and the app walks itself through all nine steps:
+it starts the session, flips Target → Baseline, trips the consent gate, renders in the Offline
+Studio and ends on Devices & Output — spotlighting each panel as it goes and showing the line to
+say underneath.
+
+| Control | Action |
+|---|---|
+| `→` / `←` | Next / previous step (also pauses auto-advance) |
+| `space` | Play or pause |
+| `esc` | Exit the tour |
+| Step dots | Jump straight to any chapter |
+
+It auto-advances by default so it can run unattended, and pausing lets you talk over a step for as
+long as you like. The overlay is click-through, so you can still drive the app by hand at any point
+without leaving the tour. Nothing extra is simulated — the tour operates exactly the same controls a
+presenter would click.
+
 ---
 
 ## Demo script for the defense
 
-A rehearsed 3–4 minute click-path.
+A rehearsed 3–4 minute click-path — the same one the guided demo automates.
 
 1. **Open on the Console, session idle.**
    "This is NeuroPresence. I've already enrolled my identity; my presentable source clip is loaded."
@@ -173,9 +201,12 @@ real reenactment.
 
 ### Demo tips
 
+- **If anything goes wrong on the day, press Guided demo.** It resets the session, the gate, the
+  watermark and the render, then plays the whole path itself.
 - The Offline Studio render needs a video file. Any short `.mp4`/`.mov`/`.webm` works — nothing is
   processed. A file whose name contains **"bad"**, or the **Simulate poor input** switch, shows the
-  honest failure state instead.
+  honest failure state instead. (The guided demo loads its own stand-in recording, so you never have
+  to pick a file mid-sentence.)
 - The driving-signal thumbnail on the Console asks for camera permission only when you press
   **Show camera preview**, so it will never interrupt the walkthrough.
 - **Start Session** is disabled while the consent gate is blocked — that is the safeguard working,

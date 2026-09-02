@@ -57,7 +57,7 @@ export function ConsentGateCard() {
   const name = enrolledUser?.name ?? 'Demo identity'
 
   return (
-    <Card>
+    <Card data-tour="consent-gate">
       <CardHeader
         icon={<ShieldCheck size={16} />}
         title="Consent Gate"
