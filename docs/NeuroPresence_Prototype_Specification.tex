@@ -1,0 +1,1572 @@
+%=======================================================================
+%  NeuroPresence -- Proof-of-Concept UI Prototype
+%  Complete Feature and Implementation Specification
+%
+%  Compiles with pdfLaTeX. No non-standard packages, no external assets.
+%  Deliberately ASCII-only in the source so it builds anywhere.
+%=======================================================================
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.4cm,top=2.6cm,bottom=2.6cm]{geometry}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+%----------------------------------------------------------------------
+%  Palette and styling
+%----------------------------------------------------------------------
+\definecolor{npPrimary}{HTML}{2563EB}
+\definecolor{npAccent}{HTML}{7C3AED}
+\definecolor{npSuccess}{HTML}{16A34A}
+\definecolor{npWarning}{HTML}{D97706}
+\definecolor{npDanger}{HTML}{DC2626}
+\definecolor{npInk}{HTML}{0F172A}
+\definecolor{npMuted}{HTML}{64748B}
+\definecolor{npRule}{HTML}{E2E8F0}
+\definecolor{npSurface}{HTML}{F3F5F9}
+
+\hypersetup{
+  colorlinks=false,
+  pdftitle={NeuroPresence Prototype -- Feature and Implementation Specification},
+  pdfauthor={Zain Shahid, Muhammad Talha Arshad, Sana Ullah Farooqi},
+  pdfsubject={FYP-1 proposal defense: proof-of-concept UI prototype},
+}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{npInk}}
+  {\color{npPrimary}\normalsize\MakeUppercase{Chapter \thechapter}}
+  {6pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-24pt}{24pt}
+
+\titleformat{\section}{\normalfont\large\bfseries\color{npInk}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries\color{npInk}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{npMuted}NeuroPresence -- Prototype Specification}
+\fancyhead[R]{\small\color{npMuted}\thepage}
+
+\setlist[itemize]{leftmargin=1.35em,itemsep=2pt,topsep=3pt}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=2pt,topsep=3pt}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% A boxed caution note without needing tcolorbox.
+\newenvironment{npnote}[1]
+  {\par\medskip\noindent\begin{tabularx}{\linewidth}{|>{\hspace{4pt}}X<{\hspace{4pt}}|}
+   \hline\rule{0pt}{3ex}\textbf{#1}\par\medskip}
+  {\par\medskip\hline\end{tabularx}\par\medskip}
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  frame=single,
+  rulecolor=\color{npRule},
+  backgroundcolor=\color{npSurface},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=0pt,
+  framexleftmargin=3pt,
+}
+
+%=======================================================================
+\begin{document}
+
+%----------------------------------------------------------------------
+%  Title page
+%----------------------------------------------------------------------
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+
+{\color{npPrimary}\rule{\linewidth}{2pt}}\\[10pt]
+{\Huge\bfseries NeuroPresence\par}
+\vspace{6pt}
+{\Large Proof-of-Concept UI Prototype\par}
+\vspace{4pt}
+{\large\itshape Complete Feature and Implementation Specification\par}
+{\color{npPrimary}\rule{\linewidth}{2pt}}\\[26pt]
+
+{\large Composed presence for online meetings,\\ using the speaker's own consented likeness\par}
+\vspace{28pt}
+
+\begin{tabular}{rl}
+\toprule
+\textbf{Project} & NeuroPresence \\
+\textbf{Stage} & FYP-1 proposal defense \\
+\textbf{Artifact} & High-fidelity interactive UI prototype \\
+\textbf{University} & FAST-NUCES Islamabad \\
+\textbf{Supervisor} & Muhammad Aamir Gulzar \\
+\bottomrule
+\end{tabular}
+
+\vspace{20pt}
+{\bfseries Team}\\[4pt]
+\begin{tabular}{ll}
+\toprule
+Zain Shahid & i232582 \\
+Muhammad Talha Arshad & i232548 \\
+Sana Ullah Farooqi & i232594 \\
+\bottomrule
+\end{tabular}
+
+\vfill
+
+\begin{tabularx}{0.94\linewidth}{|>{\hspace{5pt}}X<{\hspace{5pt}}|}
+\hline
+\rule{0pt}{3.2ex}%
+{\bfseries\color{npDanger} Scope statement.}
+This document describes a \emph{user-interface prototype}. The reenactment
+pipeline is \textbf{not implemented} in this build. There is no neural
+network, no LivePortrait, no PyTorch, ONNX or TensorRT, no face tracking, no
+landmark detection, no identity matching, no virtual-camera device, no
+backend, no database and no network call. Every metric, gate decision and
+render produced on screen originates in the simulation module described in
+Chapter~\ref{ch:engine}. The measured figures quoted in Chapter~\ref{ch:numbers}
+come from a separate benchmark run on the team's own hardware and are the
+only non-simulated numbers in the system.\par\medskip
+\hline
+\end{tabularx}
+
+\vspace{14pt}
+{\small\color{npMuted}Document version 1.0}
+\end{titlepage}
+
+\tableofcontents
+\cleardoublepage
+
+%=======================================================================
+\chapter{Introduction}
+%=======================================================================
+
+\section{The product concept}
+
+NeuroPresence lets a person appear composed and professional in an online
+meeting without having to be camera-ready at that moment. The user records one
+short, presentable \emph{source clip} of themselves in advance. During a
+meeting their live webcam supplies a \emph{driving signal} -- head pose, lip
+motion and expression. A reenactment model warps the source clip to follow that
+motion, so the outgoing video looks like the user, composed, saying what they
+are saying right now. The result is written to a \emph{virtual camera}, so any
+meeting application reads it as an ordinary webcam with no plugin.
+
+Two safeguards are integral rather than optional. A \emph{consent gate}
+restricts animation to the enrolled user's own likeness, and an optional
+\emph{synthetic-media disclosure watermark} tells other participants the feed
+is reenacted.
+
+\section{Two operating modes}
+
+\begin{description}[leftmargin=0pt,style=nextline]
+  \item[Real-time mode (primary).] Driven by the live webcam and bounded by a
+    latency budget, for use during live meetings.
+  \item[Offline mode.] The same feature set driven by a pre-recorded video the
+    user uploads. With the time constraint removed it can run at higher
+    fidelity; it serves asynchronous recording and acts as a quality reference
+    against which real-time output is judged.
+\end{description}
+
+\section{What this artifact is}
+
+The evaluating committee defines a proof of concept as \emph{a high-fidelity
+functional prototype: an interactive, highly detailed model that closely
+mirrors the visual design and behaviour of a finished product; a skeleton of
+the finished product without actual implementation of the functionality behind
+the interface.}
+
+This prototype is built to that definition. The interface is real, complete and
+interactive across eight screens. The functionality behind it is deliberately
+absent, and every screen states so.
+
+\section{Purpose of this document}
+
+This is a complete inventory of the prototype as built: every screen, every
+control, every state, every component, every simulated behaviour and every
+constant. It is intended to be read alongside the running application, and to
+serve as the reference from which the implemented system is later specified.
+
+%=======================================================================
+\chapter{Technology and Project Structure}
+%=======================================================================
+
+\section{Stack}
+
+\begin{longtable}{L{4.6cm} L{3.2cm} L{7.2cm}}
+\toprule
+\textbf{Component} & \textbf{Version} & \textbf{Role} \\
+\midrule
+\endhead
+React & 18.3.1 & UI runtime; hooks and context only, no external state library \\
+React DOM & 18.3.1 & Rendering, including portals for overlays \\
+TypeScript & 5.7.2 & Static typing across the whole source tree \\
+Vite & 6.0.7 & Dev server and static production build \\
+Tailwind CSS & 3.4.17 & Utility styling over a custom token layer \\
+Framer Motion & 11.15.0 & Transitions, layout animation, scroll effects \\
+lucide-react & 0.469.0 & Icon set \\
+PostCSS / Autoprefixer & 8.4.49 / 10.4.20 & CSS pipeline \\
+\bottomrule
+\end{longtable}
+\noindent\textit{\small Runtime and build dependencies. No machine-learning package appears
+anywhere in the dependency tree.}\par\medskip
+
+\section{Commands}
+
+\begin{longtable}{L{5.2cm} L{9.6cm}}
+\toprule
+\textbf{Command} & \textbf{Effect} \\
+\midrule
+\endhead
+\code{npm install} & Install dependencies \\
+\code{npm run dev} & Development server on \code{http://localhost:5173} \\
+\code{npm run build} & Type-check, then emit static files to \code{dist/} \\
+\code{npm run preview} & Serve the production build locally \\
+\code{npm run typecheck} & Type-check without emitting \\
+\bottomrule
+\end{longtable}
+
+\section{Source tree}
+
+The source is roughly 8{,}830 lines of TypeScript and TSX across 39 files.
+
+\begin{longtable}{L{5.4cm} L{9.4cm}}
+\toprule
+\textbf{Path} & \textbf{Contents} \\
+\midrule
+\endhead
+\code{src/main.tsx} & Entry point; mounts the provider and the app \\
+\code{src/App.tsx} & Shell composition and screen switch \\
+\code{src/index.css} & Design tokens, base layer, component classes \\
+\code{src/app/} & \code{routes.ts}, \code{Sidebar.tsx}, \code{TopBar.tsx} \\
+\code{src/screens/} & Eight screen components \\
+\code{src/components/} & Seventeen UI and domain components \\
+\code{src/mock/} & Simulation: engine, sampler, seed data, constants, tour, evidence, data checks, types \\
+\bottomrule
+\end{longtable}
+
+Everything that stands in for the absent pipeline lives under
+\code{src/mock/}. This separation is deliberate: the boundary between what is
+real interface and what is simulated behaviour is a directory boundary, and can
+be audited as one.
+
+%=======================================================================
+\chapter{Design System}
+%=======================================================================
+
+\section{Colour tokens}
+
+Colours are declared as RGB channel triples on the document root so that every
+Tailwind utility can compose an alpha value against them
+(\code{bg-success/10}, \code{border-danger/40}). Resolved \code{--token} forms
+remain available to hand-written CSS.
+
+\begin{longtable}{L{3.2cm} L{2.6cm} L{2.6cm} L{5.6cm}}
+\toprule
+\textbf{Token} & \textbf{Light} & \textbf{Dark} & \textbf{Use} \\
+\midrule
+\endhead
+\code{--bg} & \code{\#F9FAFC} & \code{\#0B0F14} & Page ground \\
+\code{--surface} & \code{\#FFFFFF} & \code{\#141A22} & Cards and panels \\
+\code{--surface-2} & \code{\#F3F5F9} & \code{\#1C2530} & Inputs, raised elements \\
+\code{--border} & \code{\#E2E8F0} & \code{\#26313D} & Hairlines, card borders \\
+\code{--text} & \code{\#0F172A} & \code{\#E6EDF3} & Primary text \\
+\code{--text-muted} & \code{\#64748B} & \code{\#8B98A5} & Secondary text \\
+\code{--primary} & \code{\#2563EB} & \code{\#3B82F6} & Primary action, active state \\
+\code{--primary-hover} & \code{\#1D4ED8} & \code{\#2563EB} & Hover \\
+\code{--success} & \code{\#16A34A} & \code{\#22C55E} & Targets met, live OK \\
+\code{--warning} & \code{\#D97706} & \code{\#F59E0B} & Caution, baseline figures \\
+\code{--danger} & \code{\#DC2626} & \code{\#EF4444} & Errors, stop, gate blocked \\
+\code{--accent} & \code{\#7C3AED} & \code{\#8B5CF6} & Highlights, disclosure chip \\
+\bottomrule
+\end{longtable}
+\noindent\textit{\small Colour tokens. The dark palette is the one specified in the build
+brief, reproduced exactly.}\par\medskip
+
+Light is the product default. Dark is one click away in Settings and via a
+toggle in the landing-page header. Elevation reads through shadow in light and
+through borders in dark, so four shadow tokens
+(\code{--shadow-card}, \code{--shadow-raised}, \code{--shadow-hover},
+\code{--shadow-hero}) are redefined per theme rather than shared.
+
+Two further per-theme tokens support the landing page: \code{--grid-line} for
+the faint engineering grid behind hero sections, and \code{--glow-a} /
+\code{--glow-b} for the drifting colour blooms.
+
+\section{Typography}
+
+\begin{longtable}{L{4.4cm} L{10.4cm}}
+\toprule
+\textbf{Role} & \textbf{Specification} \\
+\midrule
+\endhead
+Interface face & Inter, falling back to system sans stacks \\
+Numeric face & JetBrains Mono, falling back to \code{ui-monospace} \\
+Page title & 24\,px / weight 600 / tight leading \\
+Section heading & 16\,px / weight 600 \\
+Body & 14\,px / weight 400 / 1.55 leading \\
+Metric value & 28\,px / weight 600 / monospace, tabular figures \\
+Metric label & 11--12\,px / weight 600 / uppercase / 0.09\,em tracking \\
+\bottomrule
+\end{longtable}
+
+Metric values use tabular numerals so a changing figure never reflows its
+tile. Headings carry $-0.02$\,em tracking.
+
+\section{Spacing, radius, layout}
+
+An 8\,px spacing grid throughout. Card padding is 20\,px by default. Corner
+radii: cards 14\,px, controls 9\,px, chips 6\,px, hero surfaces 20\,px. The
+landing page is constrained to 1180\,px; the application shell to 1480\,px. The
+design reference is 1440$\times$900, and the layout remains usable down to
+480\,px.
+
+\section{Motion}
+
+State changes run at 150--250\,ms with an ease-out curve of
+\code{cubic-bezier(0.16, 1, 0.3, 1)}. Nine named keyframe animations are
+defined: \code{pulse-dot}, \code{ring-sweep}, \code{fade-up}, \code{shimmer},
+\code{gradient-pan}, \code{float}, \code{float-slow}, \code{marquee} and
+\code{dash-flow}.
+
+A global \code{prefers-reduced-motion} rule collapses every animation and
+transition to 0.001\,ms and disables smooth scrolling. Individual components
+additionally branch on \code{useReducedMotion()} so that scroll-triggered
+reveals, the count-up numerals, the tilt effect and the pipeline flow dots
+resolve to their final state instead of animating.
+
+\section{Component classes}
+
+Six semantic classes are defined in the CSS component layer so repeated
+patterns stay consistent: \code{.np-card}, \code{.np-chip}, \code{.np-label},
+\code{.np-metric}, \code{.np-section-heading}, \code{.np-page-title},
+\code{.np-divider}. The landing page adds \code{.np-gradient-text},
+\code{.np-grid-bg}, \code{.np-eyebrow} and \code{.np-rule}.
+
+%=======================================================================
+\chapter{Application Shell and Navigation}
+%=======================================================================
+
+\section{Shell composition}
+
+The landing page and the enrollment flow each own the whole viewport. Every
+other screen renders inside a persistent shell:
+
+\begin{itemize}
+  \item \textbf{Left sidebar.} Logo and wordmark (returns to the overview);
+    six navigation items; a guided-demo launcher; a project-overview link; the
+    enrolled-user chip with an avatar, name and status dot; and a permanent
+    \emph{Prototype build -- simulated data} badge. The sidebar is 252\,px wide
+    and collapses to a 72\,px icon rail below 1280\,px.
+  \item \textbf{Top bar.} Screen title and subtitle; the Real-time / Offline
+    mode switch; a consent chip; a disclosure chip; a session-state chip
+    (Idle / Warming / LIVE); and the virtual-camera output name.
+  \item \textbf{Main region.} The active screen, followed by a footer carrying
+    the prototype disclosure.
+\end{itemize}
+
+The active navigation item is marked with a shared-layout highlight that
+springs between items rather than cutting.
+
+\section{Routing}
+
+Routes are hash-based rather than history paths, because the build ships as
+static files and a hash URL resolves on a hard refresh without server rewrite
+rules.
+
+\begin{longtable}{L{4.6cm} L{4.6cm} L{5.6cm}}
+\toprule
+\textbf{Route} & \textbf{Screen} & \textbf{Document title} \\
+\midrule
+\endhead
+\code{\#/} & Landing / overview & NeuroPresence -- Composed presence \ldots \\
+\code{\#/enroll} & Onboarding & Get started \\
+\code{\#/console} & Console & Console \\
+\code{\#/source-clips} & Source Clips & Source Clips \\
+\code{\#/offline-studio} & Offline Studio & Offline Studio \\
+\code{\#/devices} & Devices \& Output & Devices \& Output \\
+\code{\#/feasibility} & Feasibility evidence & Feasibility Evidence \\
+\code{\#/settings} & Settings & Settings \\
+\bottomrule
+\end{longtable}
+
+Behaviour guaranteed by the router:
+
+\begin{itemize}
+  \item The document title follows the route.
+  \item Browser back and forward move between screens.
+  \item A hard refresh lands on the same screen.
+  \item A pasted deep link opens that screen directly. The initial screen is
+    seeded from the URL on the first render, so the screen-to-hash effect can
+    never fire with a stale value and overwrite the requested route.
+  \item An unknown hash falls back to the landing page.
+  \item Landing-page section links scroll programmatically and never write an
+    anchor into the URL, so \code{\#/\ldots} always denotes a screen.
+  \item Deep-linking past enrollment adopts the demo identity, so the shell is
+    never half-enrolled.
+\end{itemize}
+
+%=======================================================================
+\chapter{State Model: the Simulation Engine}
+\label{ch:engine}
+%=======================================================================
+
+All simulated state lives in a single React context provider. There is no
+persistence of any kind -- no \code{localStorage}, no \code{sessionStorage}, no
+backend -- so every reload starts from a clean, predictable state. This is a
+deliberate property: a demonstration cannot be spoiled by residue from a
+previous run.
+
+\section{Public interface}
+
+\begin{longtable}{L{4.9cm} L{4.0cm} L{6.0cm}}
+\toprule
+\textbf{Member} & \textbf{Type} & \textbf{Meaning} \\
+\midrule
+\endhead
+\multicolumn{3}{l}{\textit{Navigation}}\\
+\code{screen} & \code{Screen} & Active screen \\
+\code{navigate} & \code{(s) => void} & Change screen \\
+\code{mode} & \code{'realtime' | 'offline'} & Operating mode \\
+\code{setMode} & \code{(m) => void} & Switch mode; routes to the matching screen \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Identity}}\\
+\code{enrolledUser} & \code{EnrolledUser | null} & Name, label identifier, timestamp \\
+\code{enrollUser} & \code{(name) => void} & Record an enrollment \\
+\code{onboardingDone} & \code{boolean} & Enrollment flow completed \\
+\code{completeOnboarding} & \code{() => void} & Finish and open the Console \\
+\code{restartEnrollment} & \code{() => void} & Re-enroll from Settings \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Source clips}}\\
+\code{clips} & \code{SourceClip[]} & Library, seeds plus uploads \\
+\code{activeClip} & \code{SourceClip} & The clip that gets animated \\
+\code{setActiveClip} & \code{(id) => void} & Change the active clip \\
+\code{addClip} & \code{(file) => SourceClip} & Register an uploaded file \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Session}}\\
+\code{session} & \code{'idle'|'warming'|'live'} & Session state \\
+\code{warmupProgress} & \code{number} & 0--100 during warm-up \\
+\code{startSession} & \code{() => void} & Begin; no-op if already running \\
+\code{stopSession} & \code{() => void} & End and reset the clock \\
+\code{sessionSeconds} & \code{number} & Elapsed live seconds \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Consent gate}}\\
+\code{gateEnabled} & \code{boolean} & Policy switch \\
+\code{gateState} & \code{'verified'|'disabled'|'blocked'} & Derived presentation state \\
+\code{simulateNonEnrolledFace} & \code{() => void} & Demonstration: block for 4\,s \\
+\code{blockedSecondsLeft} & \code{number} & Recovery countdown \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Disclosure}}\\
+\code{watermark} & \code{boolean} & Overlay on or off \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Telemetry}}\\
+\code{metricsMode} & \code{'target'|'baseline'} & Which figures are shown \\
+\code{metrics} & \code{MetricSample | null} & Latest sample \\
+\code{history} & \code{MetricSample[]} & Rolling 30-sample window \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Devices}}\\
+\code{inputDevice} & \code{string} & Selected camera label \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Offline studio}}\\
+\code{offline} & \code{OfflineState} & Upload, checks, settings, render \\
+\code{setDrivingVideo} & \code{(file) => void} & Accept an upload \\
+\code{loadDemoDrivingVideo} & \code{() => void} & Stand-in recording for the tour \\
+\code{startRender} / \code{resetRender} & \code{() => void} & Render lifecycle \\
+\addlinespace
+\multicolumn{3}{l}{\textit{Appearance and demo}}\\
+\code{theme} & \code{'dark'|'light'} & Applied as a root data attribute \\
+\code{tourActive}, \code{tourIndex}, \code{tourPlaying} & --- & Guided-demo state \\
+\code{startTour} \ldots \code{tourGoTo} & --- & Guided-demo transport \\
+\bottomrule
+\end{longtable}
+\noindent\textit{\small The complete engine surface. Forty-eight members in total.}\par\medskip
+
+\section{Session lifecycle}
+
+\[
+\text{idle} \xrightarrow{\ \text{Start}\ } \text{warming}
+\xrightarrow{\ 1500\,\text{ms}\ } \text{live}
+\xrightarrow{\ \text{Stop}\ } \text{idle}
+\]
+
+Warm-up progress is sampled every 50\,ms and reported as a percentage. While
+live, a clock ticks once per second and the telemetry sampler emits twice per
+second. Calling \code{startSession} on a session that is already warming or
+live is a no-op, so a repeated press cannot restart the warm-up.
+
+A blocked consent gate tears down a running session immediately, whichever
+state it is in, and disables the start control until the gate recovers.
+
+\section{Consent gate}
+
+The gate state is derived rather than stored:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Condition} & \textbf{State} \\
+\midrule
+Policy switch off & \code{disabled} (amber) \\
+Blocked timer active & \code{blocked} (red) \\
+Otherwise & \code{verified} (green) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The demonstration control sets a four-second block. A 200\,ms interval drives a
+visible countdown, and the state recovers on its own.
+
+\section{Timing constants}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Governs} \\
+\midrule
+\code{WARMUP\_MS} & 1500 & Session warm-up \\
+\code{BLOCKED\_DEMO\_MS} & 4000 & Consent-gate block \\
+\code{METRICS\_INTERVAL\_MS} & 500 & Telemetry sampling \\
+\code{RENDER\_MS} & 5000 & Offline render \\
+\code{ANALYSIS\_MS} & 2000 & Enrollment analysis \\
+Input check & 1400 & Offline input-quality check \\
+\code{HISTORY\_LENGTH} & 30 & Sparkline window \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Telemetry simulation}
+
+Samples are produced by a mean-reverting random walk bounded to the configured
+envelope. For a previous value $x_{t-1}$ in a range $[\ell, h]$ with midpoint
+$m = (\ell + h)/2$ and span $s = h - \ell$:
+
+\[
+x_t = \operatorname{clamp}\Big(x_{t-1} + \big(m - x_{t-1}\big)\,\alpha
+      + \mathcal{N}_{\pm 2.5}\,s\,\beta,\ \ \ell,\ h\Big)
+\]
+
+where $\mathcal{N}_{\pm 2.5}$ is a Box--Muller normal deviate clamped to
+$\pm 2.5$ standard deviations so a single sample can never fly off. Pull
+$\alpha$ and noise $\beta$ default to $0.12$ and $0.16$; GPU memory uses
+$0.05$ and $0.07$ because allocators do not thrash frame to frame, and
+identity similarity uses $0.09$ and $0.12$.
+
+The result wanders and occasionally ticks, which is what real telemetry looks
+like, rather than jittering uniformly. The function is pure: the next state is
+a function of the previous state and the mode alone.
+
+\begin{longtable}{L{3.4cm} L{4.4cm} L{4.4cm}}
+\toprule
+\textbf{Metric} & \textbf{Target envelope} & \textbf{Baseline envelope} \\
+\midrule
+\endhead
+Latency & 38--45\,ms & 127.1--133.1\,ms \\
+Throughput & 22--25\,FPS & 7.4--8.0\,FPS \\
+GPU memory & 3.5--4.5\,GB & 1.53--1.61\,GB \\
+Identity (CSIM) & 0.83--0.88 & reported as \emph{n/a (baseline)} \\
+\bottomrule
+\end{longtable}
+\noindent\textit{\small Simulation envelopes. Baseline envelopes are the measured constants
+with small jitter; the baseline benchmark produced no identity figure, so none
+is invented.}\par\medskip
+
+The sampler runs only while a session is live. On stop, values freeze at the
+last sample rather than resetting, so the final reading remains readable.
+
+\section{Seed data}
+
+\begin{longtable}{L{4.4cm} L{2.0cm} L{2.4cm} L{5.2cm}}
+\toprule
+\textbf{Clip} & \textbf{Duration} & \textbf{Resolution} & \textbf{Scene} \\
+\midrule
+\endhead
+Office --- Navy Blazer & 18\,s & 512$\times$512 & office \\
+Home Study & 24\,s & 512$\times$512 & study \\
+Plain Wall & 12\,s & 512$\times$512 & plain \\
+\bottomrule
+\end{longtable}
+
+Each seed clip carries a six-colour palette (background gradient, key light,
+garment, skin, hair) used by the procedural renderer. No video files are
+shipped: the repository stays small, and nothing on screen can be mistaken for
+model output. Two further palettes cycle for user-added clips.
+
+Additional seed collections: three input devices (FaceTime HD Camera, USB
+Webcam, Integrated Camera 1080p); three meeting clients (Zoom, Google Meet,
+Microsoft Teams) with brand tints; four render stage captions (Aligning
+face, Transferring motion, Compositing, Finalizing); and four input-quality
+checks (Face detected, Front-facing, Adequate lighting, Single face).
+
+%=======================================================================
+\chapter{Screens}
+%=======================================================================
+
+\section{Landing / project overview}
+
+The entry screen. A single scrolling page that explains the whole project,
+owning the full viewport with its own sticky navigation.
+
+\begin{longtable}{L{3.6cm} L{11.2cm}}
+\toprule
+\textbf{Section} & \textbf{Contents} \\
+\midrule
+\endhead
+Navigation & Wordmark, five section links with a spring-animated active
+  indicator driven by a scroll spy, a theme toggle, and a launch button.
+  Collapses to a menu below 1024\,px. \\
+Hero & Word-by-word revealed headline with a gradient accent phrase, the
+  approved tagline, three calls to action (launch, watch the guided tour, jump
+  to the measured numbers), a drifting aurora backdrop, an engineering grid,
+  and a product shot that parallaxes on scroll. \\
+Stat strip & Headline figures drawn from the measured run and the targets. \\
+Problem & The presentation tax that the product removes. \\
+How it works & The pipeline as a sequence of stages with animated connectors. \\
+Two modes & Real-time and offline compared side by side. \\
+Safeguards & The consent gate and the disclosure watermark, with the three
+  gate states shown. \\
+Proof of concept & Measured baseline against engineering target as scaled
+  bars with count-up numerals; full measurement and target tables; a link into
+  the Feasibility screen; and an explicit note on where honesty sits in the
+  build. \\
+Capabilities & The functional-requirement map. \\
+Integration & Meeting-client support and the desktop-only limitation. \\
+Team & Members, roll numbers, supervisor and university. \\
+Final call to action & Entry into the prototype. \\
+Footer & Prototype disclosure. \\
+\bottomrule
+\end{longtable}
+
+A reading-progress bar is pinned to the top of the viewport.
+
+\section{Onboarding / identity enrollment}
+
+A centred card with a three-step progress indicator.
+
+\begin{enumerate}
+  \item \textbf{Welcome.} Product name, tagline, a \emph{Get started} action,
+    the enrollment note, and a \emph{Skip -- use demo identity} link that
+    jumps straight to the Console.
+  \item \textbf{Capture identity.} A circular framed preview, a name field
+    defaulting to the first team member, and a \emph{Capture} action. Capture
+    runs a two-second progress indicator captioned \emph{Analyzing facial
+    embedding}, then resolves to a green \emph{Identity enrolled} confirmation
+    showing the name and a label identifier. The step is a timer; no embedding
+    is computed. If camera permission has already been granted the real webcam
+    is shown; otherwise an avatar with an animated scanning ring stands in, and
+    an opt-in button offers the camera without ever prompting unbidden.
+  \item \textbf{Choose a source clip.} A grid of the available clips with
+    selection state, and a \emph{Finish} action that lands on the Console.
+\end{enumerate}
+
+Re-enrolling from Settings enters at step two.
+
+\section{Console}
+
+The centrepiece and the application home. A two-column layout.
+
+\subsection*{Left column}
+
+\begin{itemize}
+  \item \textbf{Virtual Camera Output frame.} A 16:9 surface showing the active
+    source clip as a stand-in for reenacted output, with a resolution chip, a
+    frame label, and a live indicator with a pulsing dot. Four overlay states:
+    an idle veil, a warm-up progress gradient, a red blocked veil when the gate
+    refuses, and the disclosure watermark when enabled.
+  \item \textbf{Session controls.} Start or Stop, a warming state, an elapsed
+    clock in monospace, and a signal-path readout reading
+    \emph{Driving: Webcam} $\rightarrow$ \emph{NeuroPresence Camera}.
+  \item \textbf{Reenactment pipeline strip.} Five stages -- Webcam, Motion,
+    Consent gate, Reenactment, Virtual camera -- each labelled with the
+    functional requirement it satisfies. While live, particles flow along the
+    connectors and stages pulse; when the gate blocks, the strip halts at the
+    gate and everything downstream dims. A per-frame latency chip and a
+    \emph{simulated} badge sit in the header.
+  \item \textbf{Active source clip.} Name, duration and resolution, with a
+    \emph{Change} action, and a note stating that the preview is a stand-in.
+  \item \textbf{Driving signal.} An optional webcam passthrough. Permission is
+    requested only on explicit press. Frames are displayed and never analysed.
+\end{itemize}
+
+\subsection*{Right column}
+
+\begin{itemize}
+  \item \textbf{Live telemetry.} Described in Section~\ref{sec:metrics}.
+  \item \textbf{Consent gate card.} State chip, avatar with a state-coloured
+    ring, the approved message for the current state, a policy toggle, and the
+    non-enrolled-face demonstration with its countdown.
+  \item \textbf{Disclosure watermark card.} A toggle and a live preview
+    thumbnail of the overlay as it appears in the output.
+\end{itemize}
+
+\subsection{Live telemetry panel}
+\label{sec:metrics}
+
+Four tiles, a mode switch, a history sparkline and a permanent
+\emph{simulated} badge.
+
+\begin{longtable}{L{3.4cm} L{2.6cm} L{8.6cm}}
+\toprule
+\textbf{Tile} & \textbf{Unit} & \textbf{Status thresholds} \\
+\midrule
+\endhead
+Latency & ms & Green $\leq 42$; amber $\leq 150$; red above \\
+Throughput & FPS & Green $\geq 24$; amber $\geq 12$; red below \\
+GPU memory & GB of 8.0 & Green $\leq 8$; red above \\
+Identity (CSIM) & 0--1 & Green $\geq 0.80$; amber below; \emph{n/a} in baseline \\
+\bottomrule
+\end{longtable}
+
+Values ease toward each new sample rather than jumping, using a
+requestAnimationFrame interpolator; a change large enough to be a mode switch
+rather than a new sample lands immediately instead of sliding through
+meaningless intermediate figures. Tiles use tabular numerals so nothing
+reflows.
+
+The sparkline draws the rolling 30-sample latency history as a Catmull--Rom
+spline emitted as cubic Beziers, with a gradient area fill, a soft under-glow,
+a dashed target threshold line and a breathing marker on the leading sample.
+
+The \textbf{Target / Baseline} switch is the panel's most important control. In
+Target it shows the finished-product operating point; in Baseline it clamps to
+the measured proof-of-concept figures and reveals the engineering-gap panel
+described in Section~\ref{sec:gap}.
+
+\section{Source Clips}
+
+A card grid of the clip library. Each card shows a procedurally drawn
+thumbnail that animates on hover, an active badge, an \emph{Added by you} badge
+for uploads, the name, duration and resolution, and either a \emph{Set as
+active} action or, for the active clip, a link opening the Console.
+
+An add-clip card opens a modal dialog with a drag-and-drop zone and a file
+picker. Non-video files are rejected with an explanatory message. Accepted
+files become a new clip immediately and are set active. The uploaded file is
+held as an in-memory object URL for the life of the tab; nothing is uploaded,
+processed or analysed.
+
+The dialog is rendered through a portal to the document body and implements
+standard modal behaviour: focus moves into the panel on open and returns to
+the opener on close; Escape closes; a press on the backdrop closes, while a
+drag that begins inside the panel does not.
+
+\section{Offline Studio}
+
+The non-real-time mode, presented as three numbered steps with a live output
+panel.
+
+\begin{enumerate}
+  \item \textbf{Pick a source clip.} A compact picker over the same library.
+  \item \textbf{Upload a driving video.} A dropzone using the approved prompt.
+    On acceptance the file is previewed, its true duration is read from its
+    metadata, and a simulated input-quality check runs for 1.4\,s before
+    reporting the four checks as passed. A failure path is available: a file
+    whose name contains \emph{bad}, or a demonstration switch, reports
+    \emph{Face partially occluded} with the approved recovery message and
+    re-locks rendering.
+  \item \textbf{Fidelity settings.} An output-resolution selector
+    (256, 512, 1024) and a temporal-smoothing slider, with the note that
+    offline mode has no latency limit.
+\end{enumerate}
+
+Rendering is unlocked only once the input check passes; until then the reason
+is stated. The render runs a five-second progress bar through four staged
+captions. On completion the output panel reveals the result with a
+\emph{Ready} chip, the disclosure overlay if enabled, and a details list
+giving the resolution rendered at, the smoothing value, the source clip, the
+computed output length, and a latency-budget row reading \emph{None -- offline
+quality reference}.
+
+\textbf{Download.} If the active clip was supplied by the user, the original
+file is handed back. Otherwise the on-screen stand-in is encoded to a WebM
+file whose duration matches the uploaded driving video, clamped to between 2
+and 60 seconds; where the browser cannot encode video, a single still frame is
+produced instead. The accompanying note states plainly that the file is not
+model output.
+
+\section{Devices \& Output}
+
+\begin{itemize}
+  \item \textbf{Input device.} A camera selector, cosmetic, with the selection
+    reflected on the Console.
+  \item \textbf{Output device.} A highlighted card naming
+    \emph{NeuroPresence Camera}, carrying the approved guidance for selecting
+    it inside a meeting client, and a status chip that reads \emph{Streaming}
+    while a session is live and \emph{Ready} otherwise. Supported clients are
+    listed with brand marks, alongside the approved limitation note about
+    mobile and managed-enterprise clients.
+  \item \textbf{How to use in a meeting.} Three steps.
+  \item \textbf{Fallback behaviour.} A statement that output falls back to a
+    pass-through camera if the pipeline fails or exceeds its latency budget,
+    labelled as a stated behaviour rather than a running watchdog.
+\end{itemize}
+
+\section{Feasibility evidence}
+
+Described in full in Chapter~\ref{ch:feasibility}.
+
+\section{Settings}
+
+\begin{itemize}
+  \item \textbf{Identity.} The enrolled user, the label identifier, the
+    enrollment time, and a re-enroll action.
+  \item \textbf{Consent policy.} The gate switch, with an explanation that the
+    restriction is product policy rather than a user preference, and that the
+    finished system targets a true-accept rate of at least 95\% for the
+    enrolled user.
+  \item \textbf{Disclosure policy.} The watermark switch, with the exact
+    overlay wording quoted.
+  \item \textbf{Appearance.} Light or dark.
+  \item \textbf{About.} Team members with roll numbers, supervisor,
+    university, product name and tagline, and the prototype disclosure.
+\end{itemize}
+
+Both policy switches are global: flipping either is reflected immediately in
+the top bar and on the Console.
+
+%=======================================================================
+\chapter{Interaction Flows}
+%=======================================================================
+
+Each flow below is completable by clicking, with no dead ends and no console
+errors. All six are covered by the automated suite described in
+Chapter~\ref{ch:verification}.
+
+\section{Flow A: first run and enrollment}
+
+Launch, arriving on the landing page. \emph{Launch the prototype} opens the
+enrollment flow. Step one presents the product; \emph{Get started} advances.
+Step two takes a name and runs the two-second simulated analysis, resolving to
+an enrolled confirmation. \emph{Continue} advances to step three, where a
+source clip is chosen. \emph{Finish} lands on the Console with identity and
+clip both set.
+
+A \emph{Skip -- use demo identity} link on step one bypasses the whole flow and
+lands on the Console with the demo identity applied, so a demonstration can
+start from the centrepiece immediately.
+
+\section{Flow B: a real-time session}
+
+From the Console, \emph{Start Session} runs the warm-up and goes live. The
+output frame gains a live indicator, the pipeline strip begins flowing, and
+telemetry samples twice per second with the history sparkline filling. The
+disclosure watermark can be toggled and the overlay appears and disappears on
+the output. The Target and Baseline views can be switched, and the figures
+change accordingly. \emph{Stop Session} returns everything to idle, with the
+last sample held rather than cleared.
+
+\section{Flow C: demonstrating the safeguard}
+
+With a session live, \emph{Simulate non-enrolled face} flips the gate to
+blocked. The running session is torn down, the start control is disabled, a
+banner appears, the output frame gains a red veil, and the pipeline strip halts
+at the gate with everything downstream dimmed. A countdown runs, and after four
+seconds the gate recovers and the start control is enabled again.
+
+The gate can also be switched off entirely, which produces the amber
+\emph{disabled} state and greys out the demonstration control.
+
+\section{Flow D: offline mode}
+
+The mode switch or the sidebar opens the Offline Studio. A source clip is
+picked, a driving video uploaded, and the input-quality check runs and passes.
+Resolution and smoothing are set. \emph{Render} runs the staged progress bar,
+and the output panel reveals the result with its details and a download.
+\emph{Render again} resets to the pending state.
+
+The failure path is reachable at any point by the demonstration switch or by
+uploading a file whose name contains \emph{bad}, and re-locks rendering with an
+explanatory message.
+
+\section{Flow E: the meeting-integration story}
+
+Devices \& Output presents the input selector, the named virtual-camera output
+with its selection guidance, the supported clients, the desktop-only
+limitation, the three-step usage guide, and the fallback behaviour. Starting a
+session elsewhere changes the output chip here to \emph{Streaming}.
+
+\section{Flow F: the guided demo}
+
+A single press plays all of the above unattended, narrated, in roughly three
+minutes. See Chapter~\ref{ch:tour}.
+
+%=======================================================================
+\chapter{Component Catalogue}
+%=======================================================================
+
+\section{Interface primitives}
+
+\begin{longtable}{L{3.2cm} L{11.6cm}}
+\toprule
+\textbf{Component} & \textbf{Description} \\
+\midrule
+\endhead
+\code{Card} & Bordered surface with themed elevation; optional hover lift;
+  forwards arbitrary attributes so panels can be addressed by the guided
+  demo \\
+\code{CardHeader} & Icon, title, subtitle and a right-hand slot \\
+\code{Button} & Five variants (primary, secondary, ghost, danger, success),
+  three sizes, optional full width, disabled styling \\
+\code{Toggle} & Switch with \code{role="switch"}, label, description and three
+  tone options \\
+\code{Segmented} & Tab group with a spring-animated sliding pill scoped per
+  instance \\
+\code{Select} & Labelled select with an optional hint \\
+\code{ProgressBar} & Determinate bar with full ARIA range semantics \\
+\code{Chip} & Six tones for status \\
+\code{OverlayChip} & Chip for use over video, dark in both themes \\
+\code{SimulatedBadge} & The mandatory honesty marker \\
+\code{StatusDot} & Small state dot with optional pulse \\
+\code{EmptyState} & Icon, title, body and action \\
+\bottomrule
+\end{longtable}
+
+\section{Domain components}
+
+\begin{longtable}{L{3.2cm} L{11.6cm}}
+\toprule
+\textbf{Component} & \textbf{Description} \\
+\midrule
+\endhead
+\code{VideoFrame} & The output surface with its idle, warming, live and blocked
+  overlays and the disclosure watermark \\
+\code{ClipCanvas} & Procedural clip renderer. Draws a seeded scene -- graded
+  background, key light, wall detail, figure, garment and head -- onto a canvas
+  with optional idle motion and a talking cadence. Used for every thumbnail and
+  preview, so no video file is shipped \\
+\code{MetricsPanel} & The telemetry readout \\
+\code{Sparkline} & Spline history chart with threshold marker \\
+\code{GapMeter} & The measured-versus-target comparison \\
+\code{PipelineFlow} & The five-stage pipeline strip \\
+\code{ConsentGate} & The gate card and its three states \\
+\code{WatermarkCard} & The disclosure toggle and preview \\
+\code{SessionControls} & Start, stop, clock and signal path \\
+\code{DrivingSignal} & Optional webcam passthrough, display only \\
+\code{GuidedTour} & The demo overlay and presenter dock \\
+\code{LandingPreview} & The animated product shot on the landing page \\
+\code{Avatar} & Initials on a generated gradient; no photograph is ever stored
+  because no capture occurs \\
+\code{exportOutput} & Canvas-to-WebM encoding and download helpers \\
+\code{useAnimatedNumber} & Value interpolation for metric tiles \\
+\bottomrule
+\end{longtable}
+
+\section{Motion primitives}
+
+\code{Reveal}, \code{RevealGroup} and \code{RevealItem} for scroll-triggered
+entrances; \code{MountStagger} and \code{MountItem} for panels already in view
+when a screen opens; \code{CountUp} for numerals that count into place;
+\code{WordReveal} for headline text rising word by word out of clipping boxes;
+\code{TiltCard} for pointer-tracked tilt; \code{AuroraBackdrop} for drifting
+colour blooms; \code{GrowBar} for bars that grow into view;
+\code{ScrollProgress} for the reading indicator; \code{useScrollSpy} and
+\code{scrollToSection} for landing navigation.
+
+Every one of these degrades to an immediate, static render under
+\code{prefers-reduced-motion}.
+
+%=======================================================================
+\chapter{The Guided Demo}
+\label{ch:tour}
+%=======================================================================
+
+The rehearsed defense click-path is built into the application. It is launched
+from the sidebar or from the landing page, and drives the interface through
+eleven steps, operating exactly the same public actions a presenter would click
+by hand. Nothing additional is simulated.
+
+\section{Presentation}
+
+A dimming layer covers the viewport with a hole cut over the element under
+discussion, tracked by a single animation loop that eases the reported
+rectangle toward its target so the mask and its ring stay locked together. A
+presenter dock carries the chapter, the title, the line to say and a
+supporting note. The dock relocates to the opposite edge when it would
+otherwise cover its own subject.
+
+The overlay is click-through everywhere except the dock, so the application
+remains drivable by hand at any point without leaving the tour.
+
+\section{Transport}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Control} & \textbf{Action} \\
+\midrule
+Right / Left arrow & Next or previous step; pauses auto-advance \\
+Space & Play or pause \\
+Escape & Exit \\
+Step dots & Jump to any chapter \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Auto-advance is on by default so the tour can run unattended; a per-step timer
+bar drains over the step's dwell time.
+
+\section{Steps}
+
+\begin{longtable}{L{0.7cm} L{2.3cm} L{3.3cm} L{2.0cm} L{5.4cm}}
+\toprule
+\textbf{\#} & \textbf{Chapter} & \textbf{Step} & \textbf{Dwell} & \textbf{State the step establishes} \\
+\midrule
+\endhead
+1 & Setup & The product & 7.0\,s & Resets session, render, gate, watermark and
+  metrics mode; opens the Console \\
+2 & Setup & How it works & 8.5\,s & Spotlights the pipeline strip \\
+3 & Live session & Start a session & 6.5\,s & Starts a live session \\
+4 & Live session & Live telemetry & 9.0\,s & Ensures a session; target mode \\
+5 & The evidence & Measured baseline & 11.0\,s & Switches to baseline; reveals
+  the engineering gap \\
+6 & Safeguards & Disclosure & 7.5\,s & Enables the watermark \\
+7 & Safeguards & The consent gate & 9.0\,s & Blocks the gate; the pipeline
+  halts and the session is torn down \\
+8 & Two modes & Offline studio & 11.0\,s & Loads a stand-in recording and
+  renders it unattended \\
+9 & Integration & Virtual camera & 9.0\,s & Opens Devices \& Output \\
+10 & Evidence & Feasibility evidence & 10.0\,s & Opens the risk register \\
+11 & Evidence & Where this stands & 9.0\,s & Closing statement \\
+\bottomrule
+\end{longtable}
+\noindent\textit{\small The eleven steps. Total unattended runtime is approximately 98
+seconds of dwell, or three to four minutes when narrated.}\par\medskip
+
+%=======================================================================
+\chapter{Feasibility Evidence}
+\label{ch:feasibility}
+%=======================================================================
+
+This screen answers the POC-lite criterion of the evaluation rubric directly.
+It opens with a coverage strip naming which section satisfies which part of the
+criterion.
+
+\begin{longtable}{L{6.6cm} L{8.2cm}}
+\toprule
+\textbf{Criterion element} & \textbf{Where it is satisfied} \\
+\midrule
+\endhead
+Clickable high-fidelity prototype, no core functionality behind the interface
+  & The application as a whole; the scope card on this screen \\
+API / data check & Data-path check, this screen \\
+Baseline run & Baseline run record, this screen \\
+Sample pipeline & The pipeline strip on the Console \\
+Risk experiment & Risk register, this screen \\
+Full MVP & Not required; deliberately not attempted \\
+\bottomrule
+\end{longtable}
+
+\section{Data-path check}
+
+There is no backend to probe, so what is checked is the path this build
+genuinely depends on. Eight checks run live in the reader's own browser when
+the screen opens, and can be re-run on demand. Each reports a real outcome and
+a measured duration.
+
+\begin{longtable}{L{4.4cm} L{10.4cm}}
+\toprule
+\textbf{Check} & \textbf{What it stands behind} \\
+\midrule
+\endhead
+Canvas 2D rendering & Clip stand-ins, the output preview, the render surface.
+  Paints a pixel and reads it back \\
+Canvas to MediaStream & Encoding the offline result. Opens a capture stream
+  and counts tracks \\
+WebM video encoder & The download action. Enumerates accepted codec profiles \\
+Encode-decode round trip & Reading an uploaded recording's duration. Records a
+  real fragment, then decodes its metadata back \\
+Object URL lifecycle & Holding uploads in the tab. Creates, reads, revokes,
+  and confirms the handle stops resolving \\
+Upload type guard & Rejecting non-video uploads. Exercises the exact predicate
+  the dialogs use \\
+Camera capture API & The optional driving-signal preview. Presence only; no
+  permission is requested \\
+Reenactment model path & The core functionality deliberately left out.
+  Reported as \emph{not implemented}, never as passing \\
+\bottomrule
+\end{longtable}
+
+\section{Baseline run record}
+
+The environment and the recorded figures, presented as a run record, followed
+by the gap panel and a verdict.
+
+\subsection{Engineering gap}
+\label{sec:gap}
+
+Both figures are drawn to a common scale so the size of the remaining work is
+legible at a glance: 130.1\,ms measured against a 42\,ms target, an 88.1\,ms
+reduction, a factor of 3.1. The panel states the hardware, notes that the
+figures are measured rather than simulated, and names the optimisation path.
+
+\section{Risk register}
+
+Six risks, each paired with the experiment that settles it.
+
+\begin{longtable}{L{4.1cm} L{1.5cm} L{1.9cm} L{6.9cm}}
+\toprule
+\textbf{Risk} & \textbf{Severity} & \textbf{Status} & \textbf{Result or response} \\
+\midrule
+\endhead
+Too slow for real-time conversation & High & Run &
+  130.1\,ms mean, 7.7\,FPS; 3.1$\times$ above budget. Response: quantisation,
+  TensorRT export, lighter warping \\
+GPU cannot hold the model & High & Run &
+  1.57\,GB inference peak; 6.68\,GB fine-tune fit with roughly 1.3\,GB spare.
+  Response: mixed precision if extended \\
+Meeting clients refuse a virtual camera & Medium & Partial &
+  Desktop clients accept it; mobile and some managed builds block it.
+  Response: scope to desktop and state the limit in the interface \\
+Identity drifts during a call & High & Planned &
+  No result claimed. The metric already has a tile so it is reported from the
+  outset \\
+Consent gate accepts or rejects wrongly & High & Planned &
+  No result claimed. In this build the gate is interface state, not a
+  classifier \\
+Memory creeps and the process dies & Medium & Planned &
+  No result claimed. The fallback it protects is already specified \\
+\bottomrule
+\end{longtable}
+
+\begin{npnote}{The honesty rule.}
+A result is recorded only where the work has actually been done, and every
+figure in one traces to the measured run. Rows marked \emph{planned} carry no
+number whatsoever, because inventing one would defeat the purpose of the
+exercise. This is enforced by an automated test in both directions: no planned
+row may display a result, and no completed row may omit one.
+\end{npnote}
+
+\section{Scope card}
+
+Two explicit lists: what is implemented and interactive, and what is
+deliberately not implemented. This is the criterion's phrase -- an interface
+without the core functionality behind it -- stated in the product itself.
+
+%=======================================================================
+\chapter{Measured Figures and Targets}
+\label{ch:numbers}
+%=======================================================================
+
+These are the only non-simulated numbers in the system. They were produced by a
+separate benchmark run and are quoted verbatim wherever they appear.
+
+\section{Hardware}
+
+NVIDIA RTX 5050 laptop GPU with 8\,GB of VRAM, running Kubuntu Linux.
+
+\section{Measured proof of concept}
+
+Unoptimized baseline using the published LivePortrait weights, unmodified.
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Mean per-frame latency & 130.1\,ms \\
+p95 latency & 133.9\,ms \\
+p99 latency & 138.7\,ms \\
+Throughput & 7.7\,FPS \\
+Peak VRAM (inference) & 1.57\,GB \\
+Fine-tune fit check (2 of 5 modules, FP32, batch 1) & 6.68\,GB peak \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Engineering targets}
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Attribute} & \textbf{Target} \\
+\midrule
+Per-frame reenactment compute & $\leq 42$\,ms \\
+Throughput & $\geq 24$\,FPS \\
+End-to-end latency, capture to virtual camera & $\leq 150$\,ms worst case \\
+Peak GPU memory & $\leq 8$\,GB \\
+Identity preservation (CSIM) & $\geq 0.80$ \\
+Consent-gate true accept, enrolled user & $\geq 95\%$ \\
+Endurance & $\geq 30$\,min continuous, no OOM \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Interpretation}
+
+Memory is comfortable; latency is the whole problem. The gap from 130.1\,ms to
+42\,ms is a known optimisation path rather than an open research question, and
+closing it is the engineering the project delivers.
+
+%=======================================================================
+\chapter{Functional Requirement Traceability}
+%=======================================================================
+
+Every functional requirement maps to something visible in the interface.
+
+\begin{longtable}{L{1.3cm} L{5.6cm} L{7.8cm}}
+\toprule
+\textbf{FR} & \textbf{Requirement} & \textbf{Representation in the prototype} \\
+\midrule
+\endhead
+FR-1 & Capture the live webcam and extract motion &
+  The driving-signal thumbnail, the \emph{Driving: Webcam} readout, and the
+  first two stages of the pipeline strip \\
+FR-2 & Animate a source clip &
+  The output preview playing the active source clip; the Reenactment stage \\
+FR-3 & Verify likeness before animating &
+  The consent gate card and its three states; the gate stage of the pipeline,
+  which halts the strip when it blocks \\
+FR-4 & Output to a virtual camera selectable by meeting apps &
+  Devices \& Output, the named output device, and the final pipeline stage \\
+FR-5 & Optional disclosure watermark &
+  The watermark card, the overlay on the output frame and on the offline
+  render \\
+FR-6 & Preserve identity through a session &
+  The CSIM telemetry tile with its target threshold \\
+FR-7 & Report live latency, throughput and memory &
+  The telemetry panel and the history sparkline \\
+FR-8 & Offline mode with the same features, driven by a recording &
+  The Offline Studio in full \\
+\bottomrule
+\end{longtable}
+
+%=======================================================================
+\chapter{Accessibility and Responsiveness}
+%=======================================================================
+
+\section{Keyboard and assistive technology}
+
+\begin{itemize}
+  \item Every control is reachable and operable by keyboard, with a visible
+    two-pixel focus ring at a two-pixel offset.
+  \item Every button carries an accessible name, whether by text, an
+    \code{aria-label} or a title.
+  \item Every form control is associated with a label.
+  \item Switches use \code{role="switch"} with \code{aria-checked}; tab groups
+    use \code{role="tab"} with \code{aria-selected}; progress bars carry full
+    range semantics; navigation marks the current page with
+    \code{aria-current}.
+  \item The modal dialog moves focus into itself on open, restores it on
+    close, and closes on Escape or a backdrop press.
+  \item The guided demo is fully keyboard-operable and exposes its dock as a
+    labelled region.
+  \item Exactly one first-level heading exists per screen.
+\end{itemize}
+
+\section{Responsive behaviour}
+
+The design reference is 1440$\times$900. The sidebar collapses from 252\,px to
+a 72\,px icon rail below 1280\,px. Grids reflow at each breakpoint, and the
+pipeline strip scrolls horizontally within its own container rather than
+forcing the page to scroll. No horizontal page scrolling occurs at any width
+down to 480\,px.
+
+\section{Reduced motion}
+
+A global rule collapses animation and transition durations and disables smooth
+scrolling. Components additionally branch on the preference so that reveals,
+counters, tilts, flow particles and the spotlight resolve immediately to their
+final state.
+
+%=======================================================================
+\chapter{Verification}
+\label{ch:verification}
+%=======================================================================
+
+\section{Method}
+
+The prototype is exercised by an automated harness driving a real Chrome
+instance over the DevTools Protocol. Tests click actual controls, dispatch real
+key events, upload genuinely encoded video files, measure downloaded artifacts
+and read computed styles. The full suite is run against both the development
+server and the production bundle, because the two differ in ways that have
+already hidden a defect once.
+
+\section{Coverage}
+
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+\textbf{Suite} & \textbf{Area} & \textbf{Assertions} \\
+\midrule
+T1 & Routing, deep links, history, titles & 18 \\
+T2 & Console, session lifecycle, telemetry, consent gate & 31 \\
+T4 & Enrollment flow, re-enroll, skip & 25 \\
+T5 & Offline studio, upload, render, download & 30 \\
+T6 & Devices, settings, theme coverage, landing & 50 \\
+T7 & Interaction races, responsiveness, reduced motion & 21 \\
+T8 & Accessibility and keyboard behaviour & 27 \\
+T9 & Guided demo & 32 \\
+T10 & Feasibility evidence and the honesty invariant & 37 \\
+\midrule
+& \textbf{Total} & \textbf{271} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All 271 assertions pass against the production build, with no uncaught
+exceptions and no console errors.
+
+\section{Notable verifications}
+
+\begin{itemize}
+  \item The offline export is measured end to end: a driving video of a known
+    length is generated, uploaded, rendered and downloaded, and the resulting
+    file's decoded duration is compared against the input.
+  \item The guided demo is verified to actually change application state at
+    each chapter, not merely to display text.
+  \item The risk register's honesty invariant is asserted in both directions.
+  \item Rapid navigation, interleaved theme changes and button mashing are
+    exercised to confirm no transition can wedge.
+\end{itemize}
+
+\section{Defects found and corrected}
+
+\begin{longtable}{L{4.6cm} L{10.2cm}}
+\toprule
+\textbf{Defect} & \textbf{Cause and resolution} \\
+\midrule
+\endhead
+Every screen blanked after a theme change &
+  An exit-then-enter transition deadlocked when an unrelated context update
+  re-rendered the subtree, leaving the content region at zero opacity for all
+  subsequent navigation. Replaced with a keyed transition that cannot wedge \\
+Offline export always three seconds &
+  The encoder length was hard-coded. The uploaded recording's true duration is
+  now read from its metadata and used, clamped to a sane range \\
+Deep links and refresh fell back to the landing page &
+  The screen-to-hash effect fired with a stale initial value and overwrote the
+  requested route. The initial screen is now seeded from the URL \\
+Escape did not close the upload dialog &
+  The handler sat on a non-focusable element, so no key event ever reached it.
+  Moved to a document-level listener \\
+Focus never entered the dialog &
+  Keyboard and screen-reader users were stranded. Focus now enters on open and
+  returns to the opener on close \\
+Modal backdrop 16\,px short &
+  A layout utility applied a top margin to the backdrop, and a fixed element
+  still honours margins, leaving a strip along the top through which clicks
+  fell to the page beneath. The dialog is now portalled to the document body \\
+Data checks stuck on \emph{running} &
+  A cancellation flag set by the development-mode remount teardown was never
+  cleared. Replaced with a run token \\
+\bottomrule
+\end{longtable}
+
+%=======================================================================
+\chapter{Build and Deployment}
+%=======================================================================
+
+The production build type-checks the whole source tree and emits static files
+to \code{dist/}: a single HTML entry, one stylesheet and one script bundle.
+The build uses a relative base path, so the output works from any directory.
+
+Deployment targets any static host. The repository is deployed continuously
+from its default branch. Because routing is hash-based, no server rewrite
+rules are required.
+
+Requires Node 18 or later.
+
+%=======================================================================
+\chapter{Honesty and Non-Implementation}
+%=======================================================================
+
+The value of this artifact depends on nobody mistaking it for a working
+system. The following measures are structural rather than incidental.
+
+\begin{itemize}
+  \item The telemetry panel and the pipeline strip carry a permanent
+    \emph{simulated} badge.
+  \item The sidebar, the page footer, the About section and the landing page
+    each carry the prototype disclosure.
+  \item The output preview is described wherever it appears as the source clip
+    acting as a stand-in, never as model output.
+  \item The consent gate is described as interface state rather than a
+    classifier everywhere it appears.
+  \item The offline download states that the file is not model output.
+  \item The enrollment analysis is described as a timer, and the identifier as
+    a label rather than a computed embedding.
+  \item The webcam passthrough states that frames are displayed and never
+    analysed.
+  \item The feasibility screen reports the model path as \emph{not
+    implemented} rather than passing it, lists what is deliberately absent, and
+    withholds results for experiments not yet run.
+  \item All simulated behaviour is confined to a single directory, so the
+    boundary can be audited.
+\end{itemize}
+
+\begin{npnote}{Statement.}
+No machine-learning library appears in the dependency tree. No inference of any
+kind is performed. No frame is analysed. No identity is computed or compared.
+No virtual camera device is created. No data leaves the browser tab.
+\end{npnote}
+
+%=======================================================================
+\appendix
+%=======================================================================
+
+\chapter{Approved Microcopy}
+
+Fixed strings, reproduced verbatim wherever they appear.
+
+\begin{longtable}{L{3.6cm} L{11.2cm}}
+\toprule
+\textbf{Context} & \textbf{String} \\
+\midrule
+\endhead
+Tagline & Show up composed in every meeting --- using your own likeness. \\
+Enrollment note & NeuroPresence only animates your own consented likeness. \\
+Consent verified & Enrolled user --- animation permitted. \\
+Consent disabled & Consent gate off --- not recommended. \\
+Consent blocked & Likeness does not match the enrolled user --- animation
+  blocked. \\
+Watermark overlay & Synthetic media --- reenacted. \\
+Offline upload prompt & Drop a recording of yourself --- front-facing, face
+  clearly visible. \\
+Offline note & Offline mode has no latency limit, so higher fidelity settings
+  are available. \\
+Virtual-camera help & Select 'NeuroPresence Camera' as your camera in Zoom,
+  Google Meet, or Microsoft Teams. \\
+Limitation note & Desktop apps supported. Mobile and some managed-enterprise
+  clients block virtual cameras. \\
+Offline failure & We couldn't track the face reliably. Try a clearer,
+  front-facing recording. \\
+Prototype disclosure & Prototype build. Interface demonstration with simulated
+  data; the reenactment pipeline is not implemented in this build. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Demo Script}
+
+The rehearsed click-path, which the guided demo automates.
+
+\begin{enumerate}\itemsep4pt
+  \item \textbf{Open on the Console, session idle.} ``This is NeuroPresence.
+    I've already enrolled my identity; my presentable source clip is loaded.''
+  \item \textbf{Start Session.} ``Starting a live session --- the system warms
+    up, then streams to a virtual camera.''
+  \item \textbf{Point at the telemetry panel, in Target mode.} ``This is the
+    live telemetry: per-frame latency, frames per second, GPU memory, and
+    identity similarity. These are the targets our finished system runs at.''
+  \item \textbf{Flip to Baseline.} ``And this is our measured proof of concept
+    on the actual RTX 5050 --- 130 ms per frame, 7.7 FPS. That gap, 130 down to
+    42 milliseconds, is exactly the engineering our project delivers.''
+  \item \textbf{Toggle the disclosure watermark.} ``We can attach a
+    synthetic-media disclosure so other participants know the feed is
+    reenacted.''
+  \item \textbf{Simulate a non-enrolled face.} ``The consent gate only animates
+    my own enrolled likeness --- a non-matching face is blocked.''
+  \item \textbf{Switch to offline mode and render once.} ``The same feature set
+    also runs offline: upload a recording, and with no latency limit we produce
+    a higher-fidelity result.''
+  \item \textbf{Devices \& Output.} ``Integration is app-agnostic: we present
+    as a virtual camera that Zoom, Meet and Teams read as an ordinary webcam
+    --- no per-app plugin.''
+  \item \textbf{Close.} ``This prototype is the interface; the reenactment
+    pipeline is our FYP build. Our proof of concept has already measured
+    feasibility on our hardware.''
+\end{enumerate}
+
+\begin{npnote}{Note for the presenter.}
+Always state that the telemetry in the prototype is simulated, and that
+130\,ms is the measured baseline the project intends to reduce to 42\,ms.
+Never imply that the prototype performs real reenactment.
+\end{npnote}
+
+\chapter{File Inventory}
+
+Thirty-nine source files, approximately 8{,}830 lines of TypeScript and TSX.
+
+\begin{longtable}{L{5.6cm} L{9.2cm}}
+\toprule
+\textbf{File} & \textbf{Responsibility} \\
+\midrule
+\endhead
+\multicolumn{2}{l}{\textit{Entry and shell}}\\
+\code{main.tsx} & Mounts the provider and application \\
+\code{App.tsx} & Screen switch, shell composition, footer \\
+\code{index.css} & Tokens, base layer, component classes, reduced motion \\
+\code{app/routes.ts} & Route table, titles, hash resolution \\
+\code{app/Sidebar.tsx} & Primary navigation, demo launcher, identity chip \\
+\code{app/TopBar.tsx} & Titles, mode switch, status chips, output name \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Screens}}\\
+\code{screens/Landing.tsx} & Project overview, twelve sections \\
+\code{screens/Onboarding.tsx} & Three-step enrollment \\
+\code{screens/Console.tsx} & The centrepiece \\
+\code{screens/SourceClips.tsx} & Clip library and upload dialog \\
+\code{screens/OfflineStudio.tsx} & Offline mode, three steps and output \\
+\code{screens/Devices.tsx} & Input, output and integration guidance \\
+\code{screens/Feasibility.tsx} & Rubric coverage, checks, run record, risks \\
+\code{screens/Settings.tsx} & Identity, policies, appearance, about \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Components}}\\
+\code{components/ui.tsx} & Twelve interface primitives \\
+\code{components/motion.tsx} & Fourteen motion primitives and scroll helpers \\
+\code{components/VideoFrame.tsx} & Output surface and overlays \\
+\code{components/ClipCanvas.tsx} & Procedural clip renderer \\
+\code{components/MetricsPanel.tsx} & Telemetry readout \\
+\code{components/Sparkline.tsx} & Spline history chart \\
+\code{components/GapMeter.tsx} & Measured versus target comparison \\
+\code{components/PipelineFlow.tsx} & Five-stage pipeline strip \\
+\code{components/ConsentGate.tsx} & Gate card and states \\
+\code{components/WatermarkCard.tsx} & Disclosure toggle and preview \\
+\code{components/SessionControls.tsx} & Start, stop, clock, signal path \\
+\code{components/DrivingSignal.tsx} & Optional webcam passthrough \\
+\code{components/GuidedTour.tsx} & Spotlight overlay and presenter dock \\
+\code{components/LandingPreview.tsx} & Animated product shot \\
+\code{components/Avatar.tsx} & Initials on a generated gradient \\
+\code{components/exportOutput.ts} & Canvas encoding and download \\
+\code{components/useAnimatedNumber.ts} & Metric value interpolation \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Simulation}}\\
+\code{mock/engine.tsx} & All simulated state and the context provider \\
+\code{mock/sampler.ts} & Telemetry random walk \\
+\code{mock/constants.ts} & Measured figures, targets, envelopes, microcopy \\
+\code{mock/seedData.ts} & Clips, devices, clients, stages, checks \\
+\code{mock/tour.ts} & The eleven-step demo script \\
+\code{mock/evidence.ts} & Baseline record, risk register, scope \\
+\code{mock/dataCheck.ts} & The eight live data-path checks \\
+\code{mock/types.ts} & Shared type declarations \\
+\bottomrule
+\end{longtable}
+
+\chapter{Glossary}
+
+\begin{longtable}{L{3.6cm} L{11.2cm}}
+\toprule
+\textbf{Term} & \textbf{Meaning} \\
+\midrule
+\endhead
+Source clip & The user's pre-recorded, presentable video, which gets animated.
+  Not the live input \\
+Driving signal & The live webcam in real-time mode, or an uploaded recording in
+  offline mode, supplying motion \\
+Reenactment & Transferring the driving motion onto the source clip \\
+Consent gate & The safeguard restricting animation to the enrolled user's own
+  likeness \\
+Disclosure watermark & The optional overlay telling other participants the feed
+  is reenacted \\
+Virtual camera & A software camera device that meeting applications read as an
+  ordinary webcam \\
+CSIM & Cosine identity similarity, 0 to 1, higher is better \\
+Warm-up & The interval between starting a session and the feed going live \\
+Target mode & Telemetry display showing the finished-product operating point \\
+Baseline mode & Telemetry display clamped to the measured figures \\
+\bottomrule
+\end{longtable}
+
+\end{document}
