@@ -18,6 +18,7 @@ export const ROUTES: Record<Screen, string> = {
   clips: '#/source-clips',
   offline: '#/offline-studio',
   devices: '#/devices',
+  feasibility: '#/feasibility',
   settings: '#/settings',
 }
 
@@ -32,6 +33,7 @@ export const TITLES: Record<Screen, string> = {
   clips: 'Source Clips · NeuroPresence',
   offline: 'Offline Studio · NeuroPresence',
   devices: 'Devices & Output · NeuroPresence',
+  feasibility: 'Feasibility Evidence · NeuroPresence',
   settings: 'Settings · NeuroPresence',
 }
 

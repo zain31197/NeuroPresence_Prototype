@@ -6,6 +6,7 @@ import { useEngine } from './mock/engine'
 import { COPY } from './mock/constants'
 import { Console } from './screens/Console'
 import { Devices } from './screens/Devices'
+import { Feasibility } from './screens/Feasibility'
 import { Landing } from './screens/Landing'
 import { OfflineStudio } from './screens/OfflineStudio'
 import { Onboarding } from './screens/Onboarding'
@@ -17,6 +18,7 @@ const SCREENS = {
   clips: SourceClips,
   offline: OfflineStudio,
   devices: Devices,
+  feasibility: Feasibility,
   settings: Settings,
 } as const
 

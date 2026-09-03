@@ -73,7 +73,10 @@ the sidebar, the page footer and Settings → About.
    checklist → resolution and temporal smoothing → simulated render → output and download.
 5. **Devices & Output** — camera input selection, the **NeuroPresence Camera** output card, Zoom /
    Google Meet / Microsoft Teams support, the desktop-only limitation, and the fallback note.
-6. **Settings** — identity and re-enrollment, consent policy, disclosure policy, theme, and About
+6. **Feasibility** — the evidence behind the prototype: a data-path check that runs live in the
+   browser, the baseline run record, the risk register with the experiment settling each risk, and
+   an explicit statement of what is and is not implemented.
+7. **Settings** — identity and re-enrollment, consent policy, disclosure policy, theme, and About
    (team, supervisor, university, prototype disclosure).
 
 ---
@@ -93,6 +96,7 @@ with no server rewrite rules.
 | `#/source-clips` | Source Clips |
 | `#/offline-studio` | Offline Studio |
 | `#/devices` | Devices & Output |
+| `#/feasibility` | Feasibility evidence |
 | `#/settings` | Settings |
 
 The document title follows the route. Landing-page section links scroll programmatically and never
@@ -143,13 +147,42 @@ project.
 
 ---
 
+## POC-lite / feasibility evidence
+
+The **Feasibility** screen answers the POC-lite criterion directly, and says at the top which
+section covers which part of it.
+
+| Asked for | Where it is |
+|---|---|
+| Clickable high-fidelity prototype, no core functionality behind the interface | The whole app; scope stated on the Feasibility screen |
+| API / data check | Feasibility → Data-path check |
+| Baseline run | Feasibility → Baseline run record |
+| Sample pipeline | Console → Reenactment pipeline strip |
+| Risk experiment | Feasibility → Risk register |
+| Full MVP | Not required, and deliberately not attempted |
+
+**The data-path check is real.** There is no backend to probe, so what it checks is the path this
+build genuinely depends on: canvas rendering, canvas-to-MediaStream capture, the WebM encoder, an
+encode-and-decode round trip that reads a duration back out, object-URL lifecycle, the upload type
+guard, and the presence of the camera API. It runs on whatever machine opens the page and reports
+real results with real timings. The last row reports the reenactment model path as **not
+implemented** rather than quietly passing it.
+
+**The risk register carries results only where work has been done.** Two experiments are marked
+run — the latency baseline and the VRAM fit check — and both quote Appendix A figures. One is
+partly settled. Three are marked **planned** and carry no numbers at all, because inventing a
+result would defeat the purpose of the exercise. A test in the harness enforces exactly that: no
+row marked planned may display a result.
+
+---
+
 ## Guided demo (the script, driven by the app)
 
 The click-path below is also built into the prototype. Press **Guided demo** in the sidebar, or
 **Watch the 3-min tour** on the landing page, and the app walks itself through all nine steps:
 it starts the session, flips Target → Baseline, trips the consent gate, renders in the Offline
-Studio and ends on Devices & Output — spotlighting each panel as it goes and showing the line to
-say underneath.
+Studio, shows the risk register on the Feasibility screen, and ends there — spotlighting each panel
+as it goes and showing the line to say underneath.
 
 | Control | Action |
 |---|---|

@@ -12,6 +12,7 @@ const TITLES: Record<Screen, { title: string; subtitle: string }> = {
   clips: { title: 'Source Clips', subtitle: 'The presentable clips that get reenacted.' },
   offline: { title: 'Offline Studio', subtitle: 'Higher fidelity, driven by a recording.' },
   devices: { title: 'Devices & Output', subtitle: 'Camera input and virtual-camera output.' },
+  feasibility: { title: 'Feasibility evidence', subtitle: 'Data check, baseline run and the risk register.' },
   settings: { title: 'Settings', subtitle: 'Identity, safeguards and appearance.' },
 }
 

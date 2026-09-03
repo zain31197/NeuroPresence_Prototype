@@ -6,6 +6,7 @@ import {
   Camera,
   Clapperboard,
   Cpu,
+  FlaskConical,
   Gauge,
   GraduationCap,
   Info,
@@ -744,6 +745,7 @@ const TARGET_ROWS = [
 ]
 
 function Proof() {
+  const { navigate } = useEngine()
   const latencyScale = 145
   const fpsScale = 27
 
@@ -912,6 +914,20 @@ function Proof() {
             </div>
           </Reveal>
         </div>
+
+        <Reveal delay={0.12}>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-border bg-surface px-5 py-4 shadow-card">
+            <p className="max-w-[38rem] text-[13px] leading-relaxed text-text-muted">
+              <span className="font-semibold text-text">The full evidence sits inside the app.</span>{' '}
+              The run record, a data-path check that runs live in your browser, and every risk
+              paired with the experiment that settles it.
+            </p>
+            <Button variant="primary" onClick={() => navigate('feasibility')}>
+              <FlaskConical size={15} />
+              Feasibility evidence
+            </Button>
+          </div>
+        </Reveal>
 
         <Reveal delay={0.15}>
           <div className="mt-6 flex items-start gap-3 rounded-card border border-accent/25 bg-accent/[0.06] px-5 py-4">

@@ -5,6 +5,7 @@ export type Screen =
   | 'clips'
   | 'offline'
   | 'devices'
+  | 'feasibility'
   | 'settings'
 
 export type Mode = 'realtime' | 'offline'

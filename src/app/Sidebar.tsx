@@ -4,6 +4,7 @@ import {
   Film,
   Home,
   LayoutDashboard,
+  FlaskConical,
   MonitorPlay,
   Presentation,
   Settings as SettingsIcon,
@@ -18,6 +19,7 @@ const NAV: Array<{ screen: Screen; label: string; icon: typeof LayoutDashboard }
   { screen: 'clips', label: 'Source Clips', icon: Film },
   { screen: 'offline', label: 'Offline Studio', icon: Clapperboard },
   { screen: 'devices', label: 'Devices & Output', icon: MonitorPlay },
+  { screen: 'feasibility', label: 'Feasibility', icon: FlaskConical },
   { screen: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
